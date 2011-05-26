@@ -1,0 +1,31 @@
+Plync is a mobile data air sync server implementation in Perl/Plack.
+
+It will support ActiveSync, SyncML and other protocols with varous backends.
+
+PSGI file example:
+
+    #!/usr/bin/env perl
+
+    use strict;
+    use warnings;
+
+    use Plync;
+
+    use Plack::Builder;
+
+    my $app = sub {
+        my $env = shift;
+
+        return Plync->dispatch($env);
+    };
+
+    builder {
+        enable "Auth::Basic", authenticator => sub {
+            my ($username, $password) = @_;
+            return $username eq 'foo' && $password eq 'bar';
+        };
+
+        $app;
+    };
+
+Work is still in progress.
