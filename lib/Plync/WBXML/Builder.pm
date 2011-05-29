@@ -19,6 +19,7 @@ sub build {
     $self->{publicid} ||= 1;
     $self->{charset}  ||= 'UTF-8';
 
+    $self->{page} = 0;
     $self->{buffer} = [];
 
     $self->_push($self->{version});
@@ -27,6 +28,7 @@ sub build {
     $self->_push(0);
 
     my $parser = XML::LibXML->new;
+    $parser->set_options(no_blanks => 1);
     $parser->expand_entities(0);
     my $dom = $parser->parse_string($xml);
 
@@ -75,11 +77,10 @@ sub _build_node {
     my $self = shift;
     my ($node) = @_;
 
-    my $tag;
+    my $name = $node->localName;
+    my $ns   = $node->namespaceURI;
 
-    my $name = $node->nodeName;
-
-    $tag = $self->{tags}->{$name};
+    my ($tag, $page) = $self->{schema}->get_code($ns, $name);
 
     if ($node->hasAttributes) {
         $tag |= 2**7;
@@ -87,6 +88,13 @@ sub _build_node {
 
     if ($node->nodeValue || $node->hasChildNodes) {
         $tag |= 2**6;
+    }
+
+    if ($self->{page} != $page) {
+        $self->{page} = $page;
+
+        $self->_push(WBXML_SWITCH_PAGE);
+        $self->_push($page);
     }
 
     $self->_push($tag);

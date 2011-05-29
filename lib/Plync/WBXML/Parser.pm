@@ -99,31 +99,42 @@ sub _parse_body {
 
     $self->_parse_pi;
 
-    my $el = $self->_parse_element;
+    my $el = $self->_parse_element('root');
 
     $self->{xml}->setEncoding($self->{charset});
-    $self->{xml}->setDocumentElement($el);
-
-    #$self->{tree} = $el;
 
     $self->_parse_pi;
 }
 
 sub _parse_element {
     my $self = shift;
+    my ($is_root) = @_;
 
     $self->_parse_switch_page;
 
     my ($stag, $has_attrs, $has_content) = $self->_parse_stag;
 
-    my $page = $self->{page} || 0;
+    my ($tag, $ns) = $self->{schema}->get_tag($self->{page}, $stag);
 
-    my $code = $stag + 256 * $page;
-    my $hex_code = sprintf('%02x', $stag + 256 * $page);
+    my $element;
+    if ($is_root) {
+        if (my $ns = $self->{schema}->get_namespace(0)) {
+            $element = $self->{xml}->createElementNS("$ns:", $tag);
+        }
+        else {
+            $element = $self->{xml}->createElement($tag);
+        }
 
-    my $tag = $self->{schema}->{tags}->{$page}->{$stag} || "TAG-0x$hex_code";
+        $self->{xml}->setDocumentElement($element);
+    }
+    else {
+        $element = XML::LibXML::Element->new($tag);
+    }
 
-    my $element = XML::LibXML::Element->new($tag);
+    if ($ns) {
+        $self->{xml}->documentElement->setNamespace("$ns:", lc $ns, 0);
+        $element->setNamespace("$ns:", lc $ns, 1);
+    }
 
     if ($has_attrs) {
         my $attrs = $self->_parse_attrs;
@@ -202,20 +213,9 @@ sub _parse_attrs {
 sub _parse_attr {
     my $self = shift;
 
-    my $key = $self->_parse_attr_start;
+    my $code = $self->_parse_attr_start;
 
-    my $prefix = '';
-    if (defined(
-            $key = $self->{schema}->{attr_names}->{$self->{page}}->{$key}
-        )
-      )
-    {
-        ($key, $prefix) = split '=', $key if $key =~ m/=/;
-    }
-    else {
-        my $hex_key = sprintf '%02x', $key;
-        $key = "ATTR-0x$hex_key";
-    }
+    my ($key, $prefix) = $self->{schema}->get_attr_name($self->{page}, $code);
 
     my $values = [];
 
@@ -268,10 +268,7 @@ sub _parse_attr_value {
 
     my $code = $self->_read;
 
-    $code = $self->{schema}->{attr_values}->{$self->{page}}->{$code}
-      || 'ATTR-VALUE-' . sprintf('%02x', $code);
-
-    return $code;
+    return $self->{schema}->get_attr_value($self->{page}, $code);
 }
 
 sub _parse_switch_page {
@@ -282,7 +279,6 @@ sub _parse_switch_page {
     $self->_read;
 
     my $page = $self->_read;
-
     $self->{page} = $page;
 
     return $page;

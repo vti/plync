@@ -1,0 +1,92 @@
+package Plync::WBXML::Schema::Base;
+
+use strict;
+use warnings;
+
+sub schema {
+    my $class = shift;
+
+    no strict;
+
+    ${"$class\::_instance"} ||= $class->_new_instance(@_);
+
+    return ${"$class\::_instance"};
+}
+
+sub get_namespace {
+    my $self = shift;
+    my ($page) = @_;
+
+    return $self->_get('PAGES')->{$page};
+}
+
+sub get_code {
+    my $self = shift;
+    my ($namespace, $tag) = @_;
+
+    $namespace =~ s/:$//;
+
+    return unless defined (my $page = $self->_get('NAMESPACES')->{$namespace});
+
+    return ($self->_get('TAGS')->{$namespace}->{$tag}, $page);
+}
+
+sub get_tag {
+    my $self = shift;
+    my ($page, $code) = @_;
+
+    my $tag = $self->_get('CODES')->{$page}->{$code};
+
+    if (defined $tag) {
+        my $ns = $page ? $self->_get('PAGES')->{$page} : '';
+        return ($tag, $ns);
+    }
+
+    return ('TAG-0x' . sprintf('%02x', $code + 256 * $page), '');
+}
+
+sub get_attr_name {
+    my $self = shift;
+    my ($page, $code) = @_;
+
+    my $name = $self->_get('ATTR_NAMES')->{$page}->{$code};
+
+    if (defined $name) {
+        my $prefix = '';
+        ($name, $prefix) = split '=', $name if $name =~ m/=/;
+        return ($name, $prefix);
+    }
+
+    $name = sprintf '%02x', $name;
+    $name = "ATTR-0x$name";
+
+    return ($name, '');
+}
+
+sub get_attr_value {
+    my $self = shift;
+    my ($page, $code) = @_;
+
+    my $value = $self->_get('ATTR_VALUES')->{$page}->{$code};
+
+    $value = 'ATTR-VALUE-' . sprintf('%02x', $code) unless defined $value;
+
+    return $value;
+}
+
+sub _get {
+    my $self = shift;
+    my $class = ref $self;
+    my ($name) = @_;
+
+    no strict;
+    return ${"$class\::$name"} || {};
+}
+
+sub _new_instance {
+    my $class = shift;
+
+    return bless {@_}, $class;
+}
+
+1;
