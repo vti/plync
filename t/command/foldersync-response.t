@@ -23,12 +23,5 @@ is( Plync::Command::FolderSync::Response->new(
       )->to_string,
     <<'EOF');
 <?xml version="1.0" encoding="utf-8"?>
-<FolderSync xmlns="FolderHierarchy:">
-<Status>1</Status>
-<SyncKey>1</SyncKey>
-<Changes>
-<Count>1</Count>
-<Add><ServerId>1</ServerId><ParentId>0</ParentId><DisplayName>Calendar</DisplayName><Type>8</Type></Add>
-</Changes>
-</FolderSync>
+<FolderSync xmlns="FolderHierarchy:"><Status>1</Status><SyncKey>1</SyncKey><Changes><Count>1</Count><Add><ServerId>1</ServerId><ParentId>0</ParentId><DisplayName>Calendar</DisplayName><Type>8</Type></Add></Changes></FolderSync>
 EOF

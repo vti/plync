@@ -3,8 +3,6 @@ use warnings;
 
 use Test::More tests => 3;
 
-use XML::XPath;
-
 use_ok('Plync::Command::Ping::Request');
 
 my $req = Plync::Command::Ping::Request->parse(<<'EOF');

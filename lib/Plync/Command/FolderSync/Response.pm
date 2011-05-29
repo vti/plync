@@ -5,41 +5,31 @@ use warnings;
 
 use base 'Plync::Command::BaseResponse';
 
-use Plync::Utils qw(to_xml);
+use XML::LibXML;
 
 sub to_string {
     my $self = shift;
 
-    my $status   = $self->{status};
-    my $sync_key = $self->{sync_key};
-    my $count    = @{$self->{changes}};
+    my $dom = XML::LibXML::Document->createDocument('1.0', 'utf-8');
+    my $root = $dom->createElementNS('FolderHierarchy:', 'FolderSync');
+    $dom->setDocumentElement($root);
 
-#    my @changes;
-#    foreach my $change (@{$self->{changes}}) {
-#        push @changes, <<"EOF";
-#<Add>
-#<ServerId>$change->{server_id}</ServerId>
-#<ParentId>$change->{parent_id}</ParentId>
-#<DisplayName>$change->{display_name}</DisplayName>
-#<Type>$change->{type}</Type>
-#</Add>
-#EOF
-#    }
-    my $changes = to_xml({add => $self->{changes}});
+    $root->addNewChild('', 'Status')->appendText($self->{status});
+    $root->addNewChild('', 'SyncKey')->appendText($self->{sync_key});
 
-    return <<"EOF";
-<?xml version="1.0" encoding="utf-8"?>
-<FolderSync xmlns="FolderHierarchy:">
-<Status>$status</Status>
-<SyncKey>$sync_key</SyncKey>
-<Changes>
-<Count>$count</Count>
-$changes
-</Changes>
-</FolderSync>
-EOF
+    my $changes = $root->addNewChild('', 'Changes');
+    $changes->addNewChild('', 'Count')->appendText(scalar @{$self->{changes}});
 
-    return;
+    foreach my $change (@{$self->{changes}}) {
+        my $add = $changes->addNewChild('', 'Add');
+
+        $add->addNewChild('', 'ServerId')->appendText($change->{server_id});
+        $add->addNewChild('', 'ParentId')->appendText($change->{parent_id});
+        $add->addNewChild('', 'DisplayName')->appendText($change->{display_name});
+        $add->addNewChild('', 'Type')->appendText($change->{type});
+    }
+
+    return $dom->toString;
 }
 
 1;

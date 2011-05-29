@@ -7,18 +7,21 @@ use base 'Plync::Command::BaseRequest';
 
 sub _parse {
     my $class = shift;
-    my ($xpath) = @_;
+    my ($dom) = @_;
+
+    my $xpc = XML::LibXML::XPathContext->new($dom->documentElement);
+    $xpc->registerNs('as', 'AirSync:');
 
     my @collections;
 
     foreach
-      my $collection ($xpath->find('//Collections/Collection')->get_nodelist)
+      my $collection ($xpc->findnodes('//as:Collections/as:Collection'))
     {
-        my $collection_id    = $xpath->find('./CollectionId',   $collection);
-        my $sync_key         = $xpath->find('./SyncKey',        $collection);
-        my $class            = $xpath->find('./Class',          $collection);
-        my $deletes_as_moves = !!$xpath->find('./DeletesAsMoves', $collection);
-        my $get_changes      = !!$xpath->find('./GetChanges',     $collection);
+        my $collection_id    = $xpc->find('./as:CollectionId',   $collection);
+        my $sync_key         = $xpc->find('./as:SyncKey',        $collection);
+        my $class            = $xpc->find('./as:Class',          $collection);
+        my $deletes_as_moves = !!$xpc->find('./as:DeletesAsMoves', $collection);
+        my $get_changes      = !!$xpc->find('./as:GetChanges',     $collection);
 
         my @options;
 

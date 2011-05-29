@@ -5,18 +5,23 @@ use warnings;
 
 use base 'Plync::Command::BaseRequest';
 
+use XML::LibXML::XPathContext;
+
 sub _parse {
     my $class = shift;
-    my ($xpath) = @_;
+    my ($dom) = @_;
 
-    my $interval = $xpath->getNodeText('//HeartbeatInterval[1]');
+    my $xpc = XML::LibXML::XPathContext->new($dom->documentElement);
+    $xpc->registerNs('ping', 'Ping:');
+
+    my $interval = $xpc->findvalue('//ping:HeartbeatInterval[1]');
     return unless $interval =~ m/^\d+$/;
 
     my @folders;
 
-    foreach my $folder ($xpath->find('//Folders/Folder')->get_nodelist) {
-        my $id    = $xpath->find('./Id',    $folder);
-        my $class = $xpath->find('./Class', $folder);
+    foreach my $folder ($xpc->findnodes('//ping:Folders/ping:Folder')->get_nodelist) {
+        my $id    = $xpc->findvalue('./ping:Id',    $folder);
+        my $class = $xpc->findvalue('./ping:Class', $folder);
 
         push @folders,
           { id    => "$id",

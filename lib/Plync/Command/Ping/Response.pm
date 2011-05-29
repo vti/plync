@@ -5,6 +5,7 @@ use warnings;
 
 use base 'Plync::Command::BaseResponse';
 
+use XML::LibXML;
 use Plync::Utils qw(to_xml);
 
 sub to_string {
@@ -12,46 +13,30 @@ sub to_string {
 
     $self->{status} ||= 1;
 
-    if ($self->{status} == 1) {
-        return <<'EOF';
-<?xml version="1.0" encoding="utf-8"?>
-<Ping xmlns="Ping:">
-<Status>1</Status>
-</Ping>
-EOF
-    }
-    elsif ($self->{status} == 2) {
-        my $folders = to_xml({folder => $self->{folders}});
-        return <<"EOF";
-<?xml version="1.0" encoding="utf-8"?>
-<Ping xmlns="Ping:">
-<Status>2</Status>
-<Folders>
-$folders
-</Folders>
-</Ping>
-EOF
+    my $dom = XML::LibXML::Document->createDocument('1.0', 'utf-8');
+    my $root = $dom->createElementNS('Ping:', 'Ping');
+    $dom->setDocumentElement($root);
+
+    my $status = $dom->createElement('Status');
+    $status->appendText($self->{status});
+    $root->appendChild($status);
+
+    if ($self->{status} == 2) {
+        my $folders = $root->addNewChild('', 'Folders');
+        foreach my $name (@{$self->{folders}}) {
+            $folders->addNewChild('', 'Folder')->appendText($name);
+        }
     }
     elsif ($self->{status} == 5) {
-        return <<"EOF";
-<?xml version="1.0" encoding="utf-8"?>
-<Ping xmlns="Ping:">
-<Status>5</Status>
-<HeartbeatInterval>$self->{interval}</HeartbeatInterval>
-</Ping>
-EOF
+        $root->addNewChild('', 'HeartbeatInterval')
+          ->appendText($self->{interval});
     }
     elsif ($self->{status} == 6) {
-        return <<"EOF";
-<?xml version="1.0" encoding="utf-8"?>
-<Ping xmlns="Ping:">
-<Status>6</Status>
-<MaxFolders>$self->{max_folders}</MaxFolders>
-</Ping>
-EOF
+        $root->addNewChild('', 'MaxFolders')
+          ->appendText($self->{max_folders});
     }
 
-    return;
+    return $dom->toString;
 }
 
 1;

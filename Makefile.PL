@@ -41,11 +41,7 @@ WriteMakefile(
         'Scalar::Util'          => '0',
         'String::CamelCase'     => '0',
         'Try::Tiny'             => '0',
-        'WAP::SAXDriver::wbxml' => '0',
-        'WAP::wbxml'            => '0',
-        'XML::DOM'              => '0',
-        'XML::SAX::Writer'      => '0',
-        'XML::XPath'            => '0',
+        'XML::LibXML'           => '0',
     },
     test => {TESTS => 't/*.t t/*/*.t t/*/*/*.t t/*/*/*/*.t'}
 );
