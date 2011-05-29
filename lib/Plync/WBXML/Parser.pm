@@ -374,7 +374,9 @@ sub _parse_entity {
 
     my $entcode = $self->_read_multibyte;
 
-    return HTML::Entities::Numbered::decimal2name("&#$entcode;");
+    my $entity = HTML::Entities::Numbered::decimal2name("&#$entcode;");
+
+    return $self->{xml}->createEntityReference($entity);
 }
 
 sub _parse_opaque {

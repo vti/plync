@@ -79,6 +79,7 @@ sub _build_node {
 
     my $name = $node->localName;
     my $ns   = $node->namespaceURI;
+    $ns =~ s/:$// if defined $ns;
 
     my ($tag, $page) = $self->{schema}->get_code($ns, $name);
 

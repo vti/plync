@@ -24,9 +24,14 @@ sub get_code {
     my $self = shift;
     my ($namespace, $tag) = @_;
 
-    $namespace =~ s/:$//;
+    my $page = 0;
 
-    return unless defined (my $page = $self->_get('NAMESPACES')->{$namespace});
+    if (defined $namespace) {
+        return unless defined ($page = $self->_get('NAMESPACES')->{$namespace});
+    }
+    else {
+        $namespace = '';
+    }
 
     return ($self->_get('TAGS')->{$namespace}->{$tag}, $page);
 }

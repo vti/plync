@@ -27,7 +27,7 @@ our $ATTR_VALUES = {0x00 => {0x85 => '.org', 0x86 => 'ACCEPT'}};
 use strict;
 use warnings;
 
-use Test::More tests => 19;
+use Test::More tests => 11;
 
 use_ok('Plync::WBXML::Parser');
 
@@ -41,9 +41,9 @@ my $parser = Plync::WBXML::Parser->new(schema => Schema1->schema);
 ok($parser->parse($data));
 is($parser->version,  3);
 is($parser->publicid, 1);
-is($parser->charset,  'ASCII');
+is($parser->charset,  'ANSI_X3.4-1968');
 is($parser->to_string, <<'EOF');
-<?xml version="1.0" encoding='ASCII'?>
+<?xml version="1.0" encoding="ANSI_X3.4-1968"?>
 <XYZ><CARD> X &amp; Y<BR/> X&nbsp;=&nbsp;1 </CARD></XYZ>
 EOF
 
