@@ -43,7 +43,9 @@ sub get_tag {
     my $tag = $self->_get('CODES')->{$page}->{$code};
 
     if (defined $tag) {
-        my $ns = $page ? $self->_get('PAGES')->{$page} : '';
+        my $ns = $self->_get('PAGES')->{$page};
+        $ns = '' unless defined $ns;
+
         return ($tag, $ns);
     }
 

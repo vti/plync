@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 3;
+use Test::More tests => 6;
 
 use Plync::WBXML::Parser;
 use Plync::WBXML::Builder;
@@ -40,16 +40,39 @@ my $xml = <<'EOF';
 </Sync>
 EOF
 
-my $builder =
-  Plync::WBXML::Builder->new(
-    schema => Plync::WBXML::Schema::ActiveSync->schema);
+test_roundtrip($wbxml, $xml);
 
-$builder->build($xml);
-is($builder->to_wbxml, $wbxml);
+$wbxml = pack 'H*', '03016a00000d45480338300001494a4b033500014c03456d61696c0001010101';
 
-my $parser = Plync::WBXML::Parser->new(schema => Plync::WBXML::Schema::ActiveSync->schema);
+$xml = <<'EOF';
+<?xml version="1.0" encoding="utf-8"?>
+<Ping xmlns="Ping:">
+<HeartbeatInterval>80</HeartbeatInterval>
+<Folders>
+<Folder>
+<Id>5</Id>
+<Class>Email</Class>
+</Folder>
+</Folders>
+</Ping>
+EOF
 
-$xml =~ s/>\s+</></g;
-$xml =~ s/utf-8"\?>/UTF-8"?>\n/;
-ok($parser->parse($wbxml));
-is($parser->to_string, $xml);
+test_roundtrip($wbxml, $xml);
+
+sub test_roundtrip {
+    my ($wbxml, $xml) = @_;
+
+    my $builder =
+      Plync::WBXML::Builder->new(
+        schema => Plync::WBXML::Schema::ActiveSync->schema);
+
+    $builder->build($xml);
+    is($builder->to_wbxml, $wbxml);
+
+    my $parser = Plync::WBXML::Parser->new(schema => Plync::WBXML::Schema::ActiveSync->schema);
+
+    $xml =~ s/>\s+</></g;
+    $xml =~ s/utf-8"\?>/UTF-8"?>\n/;
+    ok($parser->parse($wbxml));
+    is($parser->to_string, $xml);
+}
