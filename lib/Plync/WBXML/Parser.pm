@@ -132,9 +132,9 @@ sub _parse_element {
         $element = XML::LibXML::Element->new($tag);
     }
 
-    if ($ns && $self->{primary_ns} ne $ns) {
+    if ($ns) {
         $self->{xml}->documentElement->setNamespace("$ns:", lc $ns, 0);
-        $element->setNamespace("$ns:", lc $ns, 1);
+        $element->setNamespace("$ns:", lc $ns, 1) if $self->{primary_ns} ne $ns;
     }
 
     if ($has_attrs) {
