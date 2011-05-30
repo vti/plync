@@ -43,7 +43,7 @@ sub _dispatch {
     my $class = shift;
     my ($command_class, $dom) = @_;
 
-    my $res = $command_class->new->dispatch($dom);
+    my $res = $command_class->dispatch($dom);
     return $class->_dispatch_error(400, 'Bad request') unless defined $res;
 
     return $res;

@@ -41,7 +41,7 @@ sub parse {
     return $self;
 }
 
-sub to_xml { shift->{xml} }
+sub dom { shift->{xml} }
 
 sub to_string {
     my $self = shift;

@@ -7,13 +7,14 @@ use base 'Plync::WBXML::Base';
 
 use Plync::WBXML::Constants;
 use Plync::WBXML::Util qw(to_mb_u_int32);
-use I18N::Charset qw(charset_name_to_mib);
 
+use I18N::Charset qw(charset_name_to_mib);
+use Scalar::Util qw(blessed);
 use XML::LibXML;
 
 sub build {
     my $self = shift;
-    my ($xml) = @_;
+    my ($dom) = @_;
 
     $self->{version}  ||= 3;
     $self->{publicid} ||= 1;
@@ -27,10 +28,12 @@ sub build {
     $self->_push(charset_name_to_mib($self->{charset}));
     $self->_push(0);
 
-    my $parser = XML::LibXML->new;
-    $parser->set_options(no_blanks => 1);
-    $parser->expand_entities(0);
-    my $dom = $parser->parse_string($xml);
+    if (!blessed $dom) {
+        my $parser = XML::LibXML->new;
+        $parser->set_options(no_blanks => 1);
+        $parser->expand_entities(0);
+        $dom = $parser->parse_string($dom);
+    }
 
     $self->_build_nodes($dom->childNodes);
 

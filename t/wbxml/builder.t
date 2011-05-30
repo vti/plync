@@ -13,7 +13,7 @@ our $TAGS = {'BR' => 0x05, 'CARD' => 0x06, 'XYZ' => 0x07};
 use strict;
 use warnings;
 
-use Test::More tests => 2;
+use Test::More tests => 3;
 
 use_ok('Plync::WBXML::Builder');
 
@@ -38,6 +38,17 @@ my $xml = <<'EOF';
 <XYZ><CARD> X &amp; Y<BR/> X&nbsp;=&nbsp;1 </CARD></XYZ>
 EOF
 $builder->build($xml);
+is($builder->to_wbxml, $data);
+
+$builder =
+  Plync::WBXML::Builder->new(charset => 'ASCII', schema => Schema1->schema);
+
+my $xml_parser = XML::LibXML->new;
+$xml_parser->set_options(no_blanks => 1);
+$xml_parser->expand_entities(0);
+my $dom = $xml_parser->parse_string($xml);
+
+$builder->build($dom);
 is($builder->to_wbxml, $data);
 
 $data = pack 'H*' =>
