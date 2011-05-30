@@ -27,16 +27,24 @@ our $ATTR_VALUES = {0x00 => {0x85 => '.org', 0x86 => 'ACCEPT'}};
 use strict;
 use warnings;
 
-use Test::More tests => 12;
+use Test::More tests => 14;
 
 use_ok('Plync::WBXML::Parser');
 
 use Plync::WBXML::Schema::ActiveSync;
 
+my $parser = Plync::WBXML::Parser->new(schema => Schema1->schema);
+
+eval { $parser->parse('') };
+ok $@;
+
+eval { $parser->parse('123') };
+ok $@;
+
 my $data = pack 'H*', =>
   '03010300474603205820262059000503205800028120033d00028120033120000101';
 
-my $parser = Plync::WBXML::Parser->new(schema => Schema1->schema);
+$parser = Plync::WBXML::Parser->new(schema => Schema1->schema);
 
 ok($parser->parse($data));
 is($parser->version,  3);

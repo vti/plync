@@ -97,13 +97,13 @@ sub _get_from_strtbl {
 sub _parse_body {
     my $self = shift;
 
-    $self->_parse_pi;
+    #$self->_parse_pi;
 
     my $el = $self->_parse_element('root');
 
     $self->{xml}->setEncoding($self->{charset});
 
-    $self->_parse_pi;
+    #$self->_parse_pi;
 }
 
 sub _parse_element {
@@ -118,7 +118,8 @@ sub _parse_element {
 
     my $element;
     if ($is_root) {
-        if (my $ns = $self->{schema}->get_namespace(0)) {
+        if ($ns) {
+            $self->{primary_ns} = $ns;
             $element = $self->{xml}->createElementNS("$ns:", $tag);
         }
         else {
@@ -131,7 +132,7 @@ sub _parse_element {
         $element = XML::LibXML::Element->new($tag);
     }
 
-    if ($ns) {
+    if ($ns && $self->{primary_ns} ne $ns) {
         $self->{xml}->documentElement->setNamespace("$ns:", lc $ns, 0);
         $element->setNamespace("$ns:", lc $ns, 1);
     }
@@ -298,10 +299,10 @@ sub _parse_content {
         #}
         elsif (defined($current = $self->_parse_entity)) {
         }
-        elsif (defined($current = $self->_parse_pi)) {
-        }
-        elsif (defined($current = $self->_parse_opaque)) {
-        }
+        #elsif (defined($current = $self->_parse_pi)) {
+        #}
+        #elsif (defined($current = $self->_parse_opaque)) {
+        #}
         elsif (defined($current = $self->_parse_element)) {
         }
 
@@ -397,14 +398,16 @@ sub _parse_opaque {
 sub _look {
     my $self = shift;
 
-    return @{$self->{buffer}} ? unpack 'C', $self->{buffer}->[0] : undef;
+    die 'Unexpected EOF' unless @{$self->{buffer}};
+
+    return unpack 'C', $self->{buffer}->[0];
 }
 
 sub _read {
     my $self = shift;
     my ($count) = @_;
 
-    return unless @{$self->{buffer}};
+    die 'Unexpected EOF' unless @{$self->{buffer}};
 
     return unpack 'C', shift @{$self->{buffer}} unless $count;
 
