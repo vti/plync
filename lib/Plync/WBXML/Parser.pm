@@ -404,16 +404,11 @@ sub _read {
     my $self = shift;
     my ($count) = @_;
 
+    return unless @{$self->{buffer}};
+
     return unpack 'C', shift @{$self->{buffer}} unless $count;
 
     return join '', splice(@{$self->{buffer}}, 0, $count);
-}
-
-sub _unread {
-    my $self = shift;
-    my ($byte) = @_;
-
-    unshift @{$self->{buffer}}, pack('C', $byte);
 }
 
 sub _read_multibyte {
