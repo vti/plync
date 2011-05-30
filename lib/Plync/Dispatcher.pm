@@ -6,15 +6,19 @@ use warnings;
 use Class::Load ();
 use Scalar::Util qw(blessed);
 use Try::Tiny;
-use XML::XPath;
+use XML::LibXML;
 
 sub dispatch {
     my $class = shift;
-    my ($xml) = @_;
+    my ($dom) = @_;
 
-    my $xpath = XML::XPath->new(xml => $xml);
+    unless (blessed $dom) {
+        $dom = try { XML::LibXML->new(no_network => 1)->parse_string($dom) };
+        return $class->_dispatch_error(400, 'Malformed XML')
+          unless defined $dom;
+    }
 
-    my $command = try { $xpath->find('name(*)') } catch {};
+    my $command = try { $dom->findvalue('name(*)') } catch {};
     return $class->_dispatch_error(400, 'Malformed XML')
       unless defined $command;
 
@@ -23,7 +27,7 @@ sub dispatch {
     try {
         Class::Load::load_class($command_class);
 
-        return $class->_dispatch($command_class, $xpath);
+        return $class->_dispatch($command_class, $dom);
     }
     catch {
         $command_class =~ s{::}{/}g;
@@ -37,19 +41,17 @@ sub dispatch {
 
 sub _dispatch {
     my $class = shift;
-    my ($command_class, $xpath) = @_;
+    my ($command_class, $dom) = @_;
 
     my $req_class = "$command_class\::Request";
 
     Class::Load::load_class($req_class);
 
-    my $req = try { $req_class->parse($xpath) };
+    my $req = try { $req_class->parse($dom) };
     return $class->_dispatch_error(400) unless $req;
 
     my $res = $command_class->new(req => $req)->dispatch;
     return $res if ref $res eq 'ARRAY';
-
-    return $res->to_string if blessed $res;
 
     return $res;
 }

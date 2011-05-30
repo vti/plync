@@ -6,9 +6,8 @@ use warnings;
 use base 'Plync::Command::BaseResponse';
 
 use XML::LibXML;
-use Plync::Utils qw(to_xml);
 
-sub to_string {
+sub build {
     my $self = shift;
 
     $self->{status} ||= 1;
@@ -36,7 +35,7 @@ sub to_string {
           ->appendText($self->{max_folders});
     }
 
-    return $dom->toString;
+    return $dom;
 }
 
 1;

@@ -20,6 +20,4 @@ my $xml = <<'EOF';
 </Ping>
 EOF
 
-my $xpath = XML::XPath->new($xml);
-
-is(Plync::Command::Ping->new->dispatch($xpath), '');
+is(Plync::Command::Ping->new->dispatch($xml), '');

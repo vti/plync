@@ -7,7 +7,7 @@ use base 'Plync::Command::BaseResponse';
 
 use XML::LibXML;
 
-sub to_string {
+sub build {
     my $self = shift;
 
     my $dom = XML::LibXML::Document->createDocument('1.0', 'utf-8');
@@ -27,7 +27,7 @@ sub to_string {
         $node->addNewChild('', 'Commands')->appendText('123');
     }
 
-    return $dom->toString();
+    return $dom;
 }
 
 1;
