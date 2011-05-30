@@ -43,15 +43,8 @@ sub _dispatch {
     my $class = shift;
     my ($command_class, $dom) = @_;
 
-    my $req_class = "$command_class\::Request";
-
-    Class::Load::load_class($req_class);
-
-    my $req = try { $req_class->parse($dom) };
-    return $class->_dispatch_error(400) unless $req;
-
-    my $res = $command_class->new(req => $req)->dispatch;
-    return $res if ref $res eq 'ARRAY';
+    my $res = $command_class->new->dispatch($dom);
+    return $class->_dispatch_error(400, 'Bad request') unless defined $res;
 
     return $res;
 }

@@ -5,7 +5,7 @@ use warnings;
 
 use base 'Plync::Command::Base';
 
-sub dispatch {
+sub _dispatch {
     my $self = shift;
 
     use Data::Dumper;

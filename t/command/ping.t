@@ -3,8 +3,6 @@ use warnings;
 
 use Test::More tests => 1;
 
-use XML::XPath;
-
 use_ok('Plync::Command::Ping');
 
 my $xml = <<'EOF';
@@ -20,4 +18,5 @@ my $xml = <<'EOF';
 </Ping>
 EOF
 
-is(Plync::Command::Ping->new->dispatch($xml), '');
+my $res = Plync::Command::Ping->dispatch($xml);
+is($res->to_string, '');
