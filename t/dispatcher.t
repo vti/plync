@@ -1,7 +1,20 @@
+package Plync::Command::Test;
+
 use strict;
 use warnings;
 
-use Test::More tests => 2;
+sub dispatch {
+    my ($xml) = @_;
+
+    return <<'EOF';
+<?xml version="1.0" encoding="utf-8"?>
+<Test xmlns="Test:">
+Hello!
+</Test>
+EOF
+}
+
+use Test::More tests => 5;
 
 use_ok('Plync::Dispatcher');
 
@@ -31,15 +44,17 @@ is_deeply(
     $not_supported
 );
 
-is(Plync::Dispatcher->dispatch(<<'EOF'), '');
+my $req = <<'EOF';
 <?xml version="1.0" encoding="utf-8"?>
-<Ping xmlns="Ping:">
-<HeartbeatInterval>80</HeartbeatInterval>
-<Folders>
-<Folder>
-<Id>5</Id>
-<Class>Email</Class>
-</Folder>
-</Folders>
-</Ping>
+<Test xmlns="Test:">
+</Test>
 EOF
+
+my $res = <<'EOF';
+<?xml version="1.0" encoding="utf-8"?>
+<Test xmlns="Test:">
+Hello!
+</Test>
+EOF
+
+is(Plync::Dispatcher->dispatch($req), $res);
