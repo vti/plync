@@ -5,9 +5,11 @@ use warnings;
 
 use base 'Plync::Dispatcher';
 
+use Plync::HTTPException;
 use Plync::WBXML::Parser;
 use Plync::WBXML::Builder;
 use Plync::WBXML::Schema::ActiveSync;
+
 use Try::Tiny;
 
 sub dispatch {
@@ -15,17 +17,10 @@ sub dispatch {
     my ($wbxml) = @_;
 
     my $dom = $class->_parse($wbxml);
-    return $class->_dispatch_error(400, 'Malformed wbxml')
-      unless defined $dom;
 
     my $res = $class->SUPER::dispatch($dom);
-    return $res if ref $res eq 'ARRAY';
 
-    $wbxml = $class->_build($res);
-    return $class->_dispatch_error(500, 'Internal Server Error')
-      unless defined $wbxml;
-
-    return $wbxml;
+    return $class->_build($res);
 }
 
 sub _parse {
@@ -40,6 +35,9 @@ sub _parse {
         $parser->parse($wbxml);
 
         $parser->dom;
+    }
+    catch {
+        Plync::HTTPException->throw(400, message => 'Malformed WBXML');
     };
 }
 
@@ -54,6 +52,9 @@ sub _build {
         $builder->build($dom);
 
         $builder->to_wbxml;
+    }
+    catch {
+        Plync::HTTPException->throw(500);
     };
 }
 

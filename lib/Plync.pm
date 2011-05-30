@@ -51,7 +51,13 @@ sub dispatch {
         $user_agent = $header;
     }
 
-    return Plync::Dispatcher::WBXML->dispatch($req->content);
+    my $body = Plync::Dispatcher::WBXML->dispatch($req->content);
+
+    my $res = $req->new_reponse;
+    $res->content_type('application/vnd.ms-sync.wbxml');
+    $res->body($body);
+
+    return $res->finalize;
 }
 
 sub _dispatch_OPTIONS {

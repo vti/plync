@@ -14,35 +14,24 @@ Hello!
 EOF
 }
 
-use Test::More tests => 5;
+use Test::More tests => 8;
 
 use_ok('Plync::Dispatcher');
 
-my $malformed_xml = [
-    400,
-    [   'Content-Type'   => 'plain/text',
-        'Content-Length' => 13
-    ],
-    ['Malformed XML']
-];
+eval { Plync::Dispatcher->dispatch };
+isa_ok($@, 'Plync::HTTPException');
+is($@->message, 'Malformed XML');
 
+eval { Plync::Dispatcher->dispatch('asdasd') };
+isa_ok($@, 'Plync::HTTPException');
+is($@->message, 'Malformed XML');
 
-my $not_supported = [
-    501,
-    [   'Content-Type'   => 'plain/text',
-        'Content-Length' => 13
-    ],
-    ['Not supported']
-];
-
-is_deeply(Plync::Dispatcher->dispatch,           $malformed_xml);
-is_deeply(Plync::Dispatcher->dispatch('asdasd'), $malformed_xml);
-
-is_deeply(
+eval {
     Plync::Dispatcher->dispatch(
-        '<?xml version="1.0" encoding="utf-8"?><Foo xmlns="Foo:"></Foo>'),
-    $not_supported
-);
+        '<?xml version="1.0" encoding="utf-8"?><Foo xmlns="Foo:"></Foo>');
+};
+isa_ok($@, 'Plync::HTTPException');
+is($@->message, 'Not supported');
 
 my $req = <<'EOF';
 <?xml version="1.0" encoding="utf-8"?>
@@ -57,4 +46,4 @@ Hello!
 </Test>
 EOF
 
-is(Plync::Dispatcher->dispatch($req), $res);
+is_deeply(Plync::Dispatcher->dispatch($req), $res);

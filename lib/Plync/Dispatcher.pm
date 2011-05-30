@@ -3,6 +3,8 @@ package Plync::Dispatcher;
 use strict;
 use warnings;
 
+use Plync::HTTPException;
+
 use Class::Load ();
 use Scalar::Util qw(blessed);
 use Try::Tiny;
@@ -12,15 +14,9 @@ sub dispatch {
     my $class = shift;
     my ($dom) = @_;
 
-    unless (blessed $dom) {
-        $dom = try { XML::LibXML->new(no_network => 1)->parse_string($dom) };
-        return $class->_dispatch_error(400, 'Malformed XML')
-          unless defined $dom;
-    }
+    $dom = $class->_parse_xml($dom) unless blessed $dom;
 
-    my $command = try { $dom->findvalue('name(*)') } catch {};
-    return $class->_dispatch_error(400, 'Malformed XML')
-      unless defined $command;
+    my $command = $class->_parse_command($dom);
 
     my $command_class = "Plync::Command::$command";
 
@@ -35,7 +31,7 @@ sub dispatch {
 
         die $_ unless $_ =~ m/^Can't locate $command_class in \@INC/;
 
-        return $class->_dispatch_error(501, 'Not supported');
+        Plync::HTTPException->throw(501, message => 'Not supported');
     };
 }
 
@@ -43,25 +39,32 @@ sub _dispatch {
     my $class = shift;
     my ($command_class, $dom) = @_;
 
-    my $res = $command_class->dispatch($dom);
-    return $class->_dispatch_error(400, 'Bad request') unless defined $res;
-
-    return $res;
+    return $command_class->dispatch($dom)
+      or Plync::HTTPException->throw(400);
 }
 
-sub _dispatch_error {
-    my $class = shift;
-    my ($status, $message) = @_;
+sub _parse_xml {
+    my $self = shift;
+    my ($xml) = @_;
 
-    $message = 'Bad request' unless defined $message;
+    return try {
+        XML::LibXML->new(no_network => 1)->parse_string($xml);
+    }
+    catch {
+        Plync::HTTPException->throw(400, message => 'Malformed XML');
+    };
+}
 
-    return [
-        $status,
-        [   'Content-Type'   => 'plain/text',
-            'Content-Length' => length($message)
-        ],
-        [$message]
-    ];
+sub _parse_command {
+    my $self = shift;
+    my ($dom) = @_;
+
+    return try {
+        $dom->findvalue('name(*)');
+    }
+    catch {
+        Plync::HTTPException->throw(400, message => 'Malformed XML');
+    };
 }
 
 1;
