@@ -39,7 +39,6 @@ WriteMakefile(
         'Class::Load'           => '0',
         'Plack'                 => '0',
         'Scalar::Util'          => '0',
-        'String::CamelCase'     => '0',
         'Try::Tiny'             => '0',
         'XML::LibXML'           => '0',
     },
