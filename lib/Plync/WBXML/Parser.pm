@@ -129,7 +129,12 @@ sub _parse_element {
         $self->{xml}->setDocumentElement($element);
     }
     else {
-        $element = XML::LibXML::Element->new($tag);
+        if ($ns && $self->{primary_ns} eq $ns) {
+            $element = $self->{xml}->createElementNS("$ns:", $tag);
+        }
+        else {
+            $element = $self->{xml}->createElement($tag);
+        }
     }
 
     if ($ns && $self->{primary_ns} ne $ns) {
@@ -189,7 +194,7 @@ sub _parse_pi {
 
     return unless defined $self->_look && $self->_look == WBXML_PI;
 
-    warn 'PI';
+    die 'PI';
 }
 
 sub _parse_attrs {

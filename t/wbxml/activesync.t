@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 6;
+use Test::More tests => 9;
 
 use Plync::WBXML::Parser;
 use Plync::WBXML::Builder;
@@ -40,7 +40,13 @@ my $xml = <<'EOF';
 </Sync>
 EOF
 
-test_roundtrip($wbxml, $xml);
+my $dom = test_roundtrip($wbxml, $xml);
+
+my $xpc = XML::LibXML::XPathContext->new($dom->documentElement);
+$xpc->registerNs('as', 'AirSync:');
+$xpc->registerNs('asb', 'AirSyncBase:');
+is($xpc->findvalue('//as:Collections/as:Collection/as:Class'), 'Contacts');
+is($xpc->findvalue('//asb:Type[1]'), '1');
 
 $wbxml = pack 'H*', '03016a00000d45480338300001494a4b033500014c03456d61696c0001010101';
 
@@ -57,7 +63,11 @@ $xml = <<'EOF';
 </Ping>
 EOF
 
-test_roundtrip($wbxml, $xml);
+$dom = test_roundtrip($wbxml, $xml);
+
+$xpc = XML::LibXML::XPathContext->new($dom->documentElement);
+$xpc->registerNs('ping', 'Ping:');
+is($xpc->findvalue('//ping:HeartbeatInterval[1]'), 80);
 
 sub test_roundtrip {
     my ($wbxml, $xml) = @_;
@@ -75,4 +85,6 @@ sub test_roundtrip {
     $xml =~ s/utf-8"\?>/UTF-8"?>\n/;
     ok($parser->parse($wbxml));
     is($parser->to_string, $xml);
+
+    return $parser->dom;
 }
