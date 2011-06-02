@@ -88,3 +88,24 @@ sub test_roundtrip {
 
     return $parser->dom;
 }
+
+my $parser = Plync::WBXML::Parser->new(schema => Plync::WBXML::Schema::ActiveSync->schema);
+
+$wbxml
+=
+pack
+'H*',
+'03016a00455c4f5003456d61696c00014b037b62613564363866622d356463622d346632372d396339322d6139663363356632343561367d31000152033100014e03310001010101';
+
+$parser->parse($wbxml);
+$xml = $parser->to_string;
+warn $xml;
+
+my $builder =
+  Plync::WBXML::Builder->new(
+    schema => Plync::WBXML::Schema::ActiveSync->schema);
+
+$builder->build($xml);
+warn unpack 'H*', $wbxml;
+warn unpack 'H*', $builder->to_wbxml;
+is($builder->to_wbxml, $wbxml);

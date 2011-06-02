@@ -34,9 +34,14 @@ sub _parse {
 
         $parser->parse($wbxml);
 
+        warn '>' x 20;;
+        warn $parser->to_string;
+        warn '>' x 20;;
+
         $parser->dom;
     }
     catch {
+        warn $_;
         Plync::HTTPException->throw(400, message => 'Malformed WBXML');
     };
 }
@@ -51,9 +56,14 @@ sub _build {
             schema => Plync::WBXML::Schema::ActiveSync->schema);
         $builder->build($dom);
 
+        warn '<' x 20;;
+        warn $dom->toString;
+        warn '<' x 20;;
+
         $builder->to_wbxml;
     }
     catch {
+        warn $_;
         Plync::HTTPException->throw(500);
     };
 }

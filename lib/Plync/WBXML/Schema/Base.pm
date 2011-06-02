@@ -27,7 +27,8 @@ sub get_code {
     my $page = 0;
 
     if (defined $namespace) {
-        return unless defined ($page = $self->_get('NAMESPACES')->{$namespace});
+        die "Unknown namespace '$namespace'"
+          unless defined($page = $self->_get('NAMESPACES')->{$namespace});
     }
     else {
         $namespace = '';

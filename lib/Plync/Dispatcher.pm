@@ -20,7 +20,9 @@ sub dispatch {
 
     my $command_class = "Plync::Command::$command";
 
-    try {
+    warn "Command '$command'\n";
+
+    return try {
         Class::Load::load_class($command_class);
 
         return $class->_dispatch($command_class, $dom);
@@ -31,6 +33,7 @@ sub dispatch {
 
         die $_ unless $_ =~ m/^Can't locate $command_class in \@INC/;
 
+        warn "!!!!!!!!!!!!!!!!             UNKNOWN $command_class";
         Plync::HTTPException->throw(501, message => 'Not supported');
     };
 }
@@ -39,8 +42,9 @@ sub _dispatch {
     my $class = shift;
     my ($command_class, $dom) = @_;
 
-    return $command_class->dispatch($dom)
-      or Plync::HTTPException->throw(400);
+    my $command = $command_class->new;
+
+    return $command->dispatch($dom) or Plync::HTTPException->throw(400);
 }
 
 sub _parse_xml {

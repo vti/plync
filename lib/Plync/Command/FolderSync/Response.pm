@@ -7,29 +7,58 @@ use base 'Plync::Command::BaseResponse';
 
 use XML::LibXML;
 
+sub new {
+    my $self = shift->SUPER::new(@_);
+
+    $self->{folders} ||= [];
+    $self->{status} = 1 unless defined $self->{status};
+
+    return $self;
+}
+
+sub add_folder {
+    my $self   = shift;
+    my %folder = @_;
+
+    push @{$self->{folders}}, {%folder};
+}
+
 sub build {
     my $self = shift;
 
+    my $ns = 'FolderHierarchy:';
+
     my $dom = XML::LibXML::Document->createDocument('1.0', 'utf-8');
-    my $root = $dom->createElementNS('FolderHierarchy:', 'FolderSync');
+    my $root = $dom->createElementNS($ns, 'FolderSync');
     $dom->setDocumentElement($root);
 
-    $root->addNewChild('', 'Status')->appendText($self->{status});
-    $root->addNewChild('', 'SyncKey')->appendText($self->{sync_key});
+    $root->addNewChild($ns, 'Status')->appendText($self->{status});
 
-    my $changes = $root->addNewChild('', 'Changes');
-    $changes->addNewChild('', 'Count')->appendText(scalar @{$self->{changes}});
+    if (defined $self->{sync_key}) {
+        $root->addNewChild($ns, 'SyncKey')->appendText($self->{sync_key});
+    }
 
-    foreach my $change (@{$self->{changes}}) {
-        my $add = $changes->addNewChild('', 'Add');
+    if (@{$self->{folders}}) {
+        my $changes = $root->addNewChild($ns, 'Changes');
+        $changes->addNewChild($ns, 'Count')
+          ->appendText(scalar @{$self->{folders}});
 
-        $add->addNewChild('', 'ServerId')->appendText($change->{server_id});
-        $add->addNewChild('', 'ParentId')->appendText($change->{parent_id});
-        $add->addNewChild('', 'DisplayName')->appendText($change->{display_name});
-        $add->addNewChild('', 'Type')->appendText($change->{type});
+        foreach my $folder (@{$self->{folders}}) {
+            my $add = $changes->addNewChild($ns, 'Add');
+
+            $add->addNewChild($ns, 'ServerId')->appendText($folder->{server_id});
+            $add->addNewChild($ns, 'ParentId')
+              ->appendText($folder->{parent_id} || 0);
+            $add->addNewChild($ns, 'DisplayName')
+              ->appendText($folder->{display_name});
+            $add->addNewChild($ns, 'Type')->appendText($folder->{type});
+        }
     }
 
     return $dom;
 }
+
+sub status   { @_ > 1 ? $_[0]->{status}   = $_[1] : $_[0]->{status} }
+sub sync_key { @_ > 1 ? $_[0]->{sync_key} = $_[1] : $_[0]->{sync_key} }
 
 1;

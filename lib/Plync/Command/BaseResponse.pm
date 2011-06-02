@@ -12,12 +12,18 @@ sub new {
     return $self;
 }
 
-sub to_string {
+sub dom {
     my $self = shift;
 
     $self->{dom} ||= $self->build;
 
-    return $self->{dom}->toString;
+    return $self->{dom};
+}
+
+sub to_string {
+    my $self = shift;
+
+    return $self->dom->toString;
 }
 
 1;

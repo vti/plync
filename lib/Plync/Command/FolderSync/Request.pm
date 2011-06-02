@@ -13,10 +13,12 @@ sub _parse {
     $xpc->registerNs('fh', 'FolderHierarchy:');
 
     my $sync_key = $xpc->findvalue('//fh:SyncKey[1]');
-    return unless $sync_key =~ m/^\d+$/;
+    return bless {error => 10} unless defined $sync_key && $sync_key ne '';
 
     return bless {sync_key => $sync_key}, $class;
 }
+
+sub error { shift->{error} }
 
 sub sync_key { shift->{sync_key} }
 

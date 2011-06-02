@@ -12,8 +12,10 @@ sub build {
 
     $self->{status} ||= 1;
 
+    my $ns = 'Ping:';
+
     my $dom = XML::LibXML::Document->createDocument('1.0', 'utf-8');
-    my $root = $dom->createElementNS('Ping:', 'Ping');
+    my $root = $dom->createElementNS($ns, 'Ping');
     $dom->setDocumentElement($root);
 
     my $status = $dom->createElement('Status');
@@ -21,17 +23,17 @@ sub build {
     $root->appendChild($status);
 
     if ($self->{status} == 2) {
-        my $folders = $root->addNewChild('', 'Folders');
+        my $folders = $root->addNewChild($ns, 'Folders');
         foreach my $name (@{$self->{folders}}) {
-            $folders->addNewChild('', 'Folder')->appendText($name);
+            $folders->addNewChild($ns, 'Folder')->appendText($name);
         }
     }
     elsif ($self->{status} == 5) {
-        $root->addNewChild('', 'HeartbeatInterval')
+        $root->addNewChild($ns, 'HeartbeatInterval')
           ->appendText($self->{interval});
     }
     elsif ($self->{status} == 6) {
-        $root->addNewChild('', 'MaxFolders')
+        $root->addNewChild($ns, 'MaxFolders')
           ->appendText($self->{max_folders});
     }
 
