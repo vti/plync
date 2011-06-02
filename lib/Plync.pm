@@ -47,7 +47,7 @@ sub dispatch {
 
     my $body = Plync::Dispatcher::WBXML->dispatch($req->content);
 
-    my $res = $req->new_reponse;
+    my $res = $req->new_response(200);
     $res->content_type('application/vnd.ms-sync.wbxml');
     $res->body($body);
 
@@ -69,7 +69,7 @@ sub _dispatch_OPTIONS {
     return [
         200,
         [   'MS-Server-ActiveSync'  => '6.5.7638.1',
-            'MS-ASProtocolVersions' => '1.0,2.0,2.1,2.5,12.0,12.1,14.0,14.1',
+            'MS-ASProtocolVersions' => '1.0,2.0,2.1,2.5',
             'MS-ASProtocolCommands' => join(',', @commands)
         ],
         ['']
