@@ -20,8 +20,6 @@ sub dispatch {
 
     my $command_class = "Plync::Command::$command";
 
-    warn "Command '$command'\n";
-
     return try {
         Class::Load::load_class($command_class);
 
@@ -33,7 +31,6 @@ sub dispatch {
 
         die $_ unless $_ =~ m/^Can't locate $command_class in \@INC/;
 
-        warn "!!!!!!!!!!!!!!!!             UNKNOWN $command_class";
         Plync::HTTPException->throw(501, message => 'Not supported');
     };
 }

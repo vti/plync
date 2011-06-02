@@ -3,6 +3,8 @@ package Plync::Command::Test;
 use strict;
 use warnings;
 
+use base 'Plync::Command::Base';
+
 sub dispatch {
     my ($xml) = @_;
 

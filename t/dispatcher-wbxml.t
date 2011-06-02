@@ -3,6 +3,8 @@ package Plync::Command::Ping;
 use strict;
 use warnings;
 
+use base 'Plync::Command::Base';
+
 sub dispatch {
     my $class = shift;
     my ($xml) = @_;

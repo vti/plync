@@ -18,5 +18,6 @@ my $xml = <<'EOF';
 </Ping>
 EOF
 
-my $res = Plync::Command::Ping->dispatch($xml);
-is($res->to_string, '');
+my $command = Plync::Command::Ping->new;
+$command->dispatch($xml);
+is($command->res->to_string, '');
