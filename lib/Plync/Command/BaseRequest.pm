@@ -14,7 +14,7 @@ sub parse {
 
     unless (blessed $dom) {
         $dom =
-          XML::LibXML->new(clean_namespaces => 1, no_network => 1)
+          XML::LibXML->new(no_blanks => 1, clean_namespaces => 1, no_network => 1)
           ->parse_string($dom);
     }
 
