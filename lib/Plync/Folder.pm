@@ -3,15 +3,17 @@ package Plync::Folder;
 use strict;
 use warnings;
 
-use base 'Plync::Stateful';
+use Plync::Folder::Email;
 
-sub id        { @_ > 1 ? $_[0]->{id}        = $_[1] : $_[0]->{id} }
-sub parent_id { @_ > 1 ? $_[0]->{parent_id} = $_[1] : $_[0]->{parent_id} }
-sub class     { @_ > 1 ? $_[0]->{class}     = $_[1] : $_[0]->{class} }
-sub type      { @_ > 1 ? $_[0]->{type}      = $_[1] : $_[0]->{type} }
+sub new {
+    my $class = shift;
+    my %args = @_;
 
-sub display_name {
-    @_ > 1 ? $_[0]->{display_name} = $_[1] : $_[0]->{display_name};
+    if ($args{class} eq 'Email') {
+        return Plync::Folder::Email->new(@_);
+    }
+
+    return;
 }
 
 1;
