@@ -15,6 +15,8 @@ sub new {
     return $self;
 }
 
+sub id { shift->{id} }
+
 sub appendTo {
     my $self = shift;
     my ($doc, $root) = @_;
@@ -38,7 +40,9 @@ sub appendTo {
     }
 
     my $body = $root->addNewChild('AirSyncBase:', 'Body');
-    for (qw(type estimated_data_size truncated)) {
+    for (qw(type estimated_data_size truncated data)) {
+        next unless defined $self->{body}->{$_};
+
         $body->addNewChild('AirSyncBase:', camelize($_))
           ->appendText($self->{body}->{$_});
     }
@@ -67,10 +71,6 @@ sub appendTo {
       ->appendText($self->{categories});
 
     return $root;
-}
-
-sub id {
-    shift->{id}
 }
 
 1;
