@@ -31,6 +31,7 @@ sub _dispatch {
         $self->res->sync_key($folders->sync_key);
     }
     elsif ($folders->sync_key eq $self->req->sync_key) {
+        $folders->synced;
         $self->res->sync_key($folders->sync_key);
 
         # TODO
