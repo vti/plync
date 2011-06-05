@@ -68,8 +68,9 @@ sub _dispatch_OPTIONS {
 
     return [
         200,
-        [   'MS-Server-ActiveSync'  => '6.5.7638.1',
-            'MS-ASProtocolVersions' => '1.0,2.0,2.1,2.5',
+        [   'MS-Server-ActiveSync'  => '14.00.0536.000',
+            'MS-ASProtocolVersions' => '14.0',
+            #'MS-ASProtocolVersions' => '2.0,2.1,2.5,12.0,12.1,14.0',
             'MS-ASProtocolCommands' => join(',', @commands)
         ],
         ['']

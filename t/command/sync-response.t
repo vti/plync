@@ -3,9 +3,9 @@ use warnings;
 
 use Test::More tests => 3;
 
-use XML::XPath;
-
 use_ok('Plync::Command::Sync::Response');
+
+use Plync::Data::Email;
 
 my $res = Plync::Command::Sync::Response->new;
 $res->add_collection(
@@ -21,7 +21,6 @@ is($res->to_string, <<'EOF');
 <Sync xmlns="AirSync:"><Collections><Collection><Class>Email</Class><SyncKey>{ba5d68fb-5dcb-4f27-9c92-a9f3c5f245a6}1</SyncKey><CollectionId>1</CollectionId><Status>1</Status></Collection></Collections></Sync>
 EOF
 
-use Plync::Data::Email;
 my $email = Plync::Data::Email->new(
     to            => '"Device User" <deviceuser@example.com>',
     from          => '"Device User 2" <deviceuser2@example.com>',

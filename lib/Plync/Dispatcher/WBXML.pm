@@ -34,9 +34,9 @@ sub _parse {
 
         $parser->parse($wbxml);
 
-        warn '>' x 20;;
-        warn $parser->to_string;
-        warn '>' x 20;;
+        warn '>' x 20;
+        warn $parser->dom->toString(2);
+        warn '>' x 20;
 
         $parser->dom;
     }
@@ -55,9 +55,9 @@ sub _build {
             schema => Plync::WBXML::Schema::ActiveSync->schema);
         $builder->build($dom);
 
-        warn '<' x 20;;
-        warn $dom;
-        warn '<' x 20;;
+        warn '<' x 20;
+        warn $dom->toString(2);
+        warn '<' x 20;
 
         $builder->to_wbxml;
     }

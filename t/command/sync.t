@@ -35,6 +35,11 @@ my $xml = <<'EOF';
 EOF
 
 my $command = Plync::Command::Sync->new;
+
+my $schema =
+  XML::LibXML::Schema->new(location => "schemas/sync-command-response.xsd");
+$schema->validate($command->dispatch($xml));
+
 is($command->dispatch($xml)->toString, <<'EOF');
 <?xml version="1.0" encoding="UTF-8"?>
 <Sync xmlns="AirSync:"><Collections><Collection><Class>Email</Class><SyncKey>1</SyncKey><CollectionId>1</CollectionId><Status>1</Status></Collection></Collections></Sync>

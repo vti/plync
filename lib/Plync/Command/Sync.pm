@@ -27,8 +27,6 @@ sub _dispatch {
             return;
         }
 
-        # TODO check if folder exists
-
         $folder->synced;
 
         $self->res->add_collection(
@@ -48,44 +46,73 @@ sub _dispatch {
         return;
     }
 
-    ## TODO check if collection exists
-
     if ($folder->sync_key eq $collections->[0]->{sync_key}) {
-        my $email = Plync::Data::Email->new(
-            id            => 123,
-            to            => '"Device User" <deviceuser@example.com>',
-            from          => '"Device User 2" <deviceuser2@example.com>',
-            subject       => 'New mail message',
-            date_received => '2009-07-29T19:25:37.817Z',
-            display_to    => 'Device User',
-            thread_topic  => 'New mail message',
-            importance    => 1,
-            read          => 0,
-            body          => {
-                type                => 2,
-                estimated_data_size => 116575,
-                truncated           => 1
-            },
-            message_class      => 'IPM.Note',
-            internet_CPID      => '1252',
-            content_class      => 'urn:content-classes:message',
-            native_body_type   => '2',
-            conversation_id    => 'FF68022058BD485996BE15F6F6D99320',
-            conversation_index => 'CA2CFA8A23'
-        );
+        if (my $commands = $collections->[0]->{commands}) {
+            use Data::Dumper;
+            warn Dumper $commands;
 
-        $self->res->add_collection(
-            status        => 1,
-            collection_id => $folder->id,
-            class         => $folder->class,
-            sync_key      => $folder->sync_key,
-            commands      => [
-                add => {
-                    server_id        => $folder->id . ':' . $email->id,
-                    application_data => $email
-                }
-            ]
-        );
+            my $object = $folder->load_object(123);
+
+                #$folder->synced;
+
+            if ($commands->[0] eq 'fetch') {
+                my $server_id = $commands->[1];
+
+                $self->res->status(1);
+
+                $self->res->add_collection(
+                    status        => 1,
+                    collection_id => $folder->id,
+                    class         => $folder->class,
+                    sync_key      => $folder->sync_key,
+                    responses     => [
+                        fetch => {
+                            server_id => $object->id,
+                            status    => 1,
+                            application_data => $object
+                        }
+                    ]
+                );
+            }
+            else {
+                die 'TODO';
+                #$self->res->add_collection(
+                #    status        => 1,
+                #    collection_id => $folder->id,
+                #    class         => $folder->class,
+                #    sync_key      => $folder->sync_key,
+                #    responses     => [
+                #        change => {
+                #            server_id => '123',
+                #            status    => 1
+                #        }
+                #    ]
+                #);
+            }
+        }
+        else {
+            $folder->synced;
+
+            my $objects = $folder->load_objects;
+
+            my @commands;
+
+            foreach my $object (@$objects) {
+                push @commands, add => {
+                    server_id        => $object->id,
+                    status           => 1,
+                    application_data => $object
+                };
+            }
+
+            $self->res->add_collection(
+                status        => 1,
+                collection_id => $folder->id,
+                class         => $folder->class,
+                sync_key      => $folder->sync_key,
+                commands      => [@commands]
+            );
+        }
     }
     else {
         $folder->reset;
@@ -94,7 +121,7 @@ sub _dispatch {
             status        => 3,
             collection_id => $folder->id,
             class         => $folder->class,
-            sync_key      => 0
+            sync_key      => $folder->sync_key
         );
     }
 

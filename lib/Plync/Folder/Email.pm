@@ -53,8 +53,8 @@ sub load_objects {
             read          => 1,
             body          => {
                 type                => 2,
-                #estimated_data_size => 116575,
-                #truncated           => 1,
+                estimated_data_size => 11,
+                truncated           => 0,
                 data => 'Hello there'
             },
             message_class      => 'IPM.Note',

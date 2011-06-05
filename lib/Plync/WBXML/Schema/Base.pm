@@ -50,7 +50,11 @@ sub get_tag {
         return ($tag, $ns);
     }
 
-    return ('TAG-0x' . sprintf('%02x', $code + 256 * $page), '');
+    $tag =
+      'TAG-0x' . sprintf('%02x', $code) . ' (' . $page . ')';
+
+    die "Unknown tag $tag";
+    return ($tag, '');
 }
 
 sub get_attr_name {
@@ -68,6 +72,7 @@ sub get_attr_name {
     $name = sprintf '%02x', $name;
     $name = "ATTR-0x$name";
 
+    die 'Unknown attr';
     return ($name, '');
 }
 
