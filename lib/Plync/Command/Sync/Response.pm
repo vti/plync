@@ -34,9 +34,8 @@ sub build {
     my $root = $dom->createElementNS($ns, 'Sync');
     $dom->setDocumentElement($root);
 
-    if (defined $self->{status}) {
-        $root->addNewChild($ns, 'Status')->appendText($self->{status});
-    }
+    $self->{status} = 1 unless defined $self->{status};
+    $root->addNewChild($ns, 'Status')->appendText($self->{status});
 
     if ($self->{collections} && @{$self->{collections}}) {
         my $collections = $root->addNewChild($ns, 'Collections');

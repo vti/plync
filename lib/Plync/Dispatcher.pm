@@ -14,8 +14,6 @@ sub dispatch {
     my $class = shift;
     my ($dom) = @_;
 
-    $dom = $class->_parse_xml($dom) unless blessed $dom;
-
     my $command = $class->_parse_command($dom);
 
     my $command_class = "Plync::Command::$command";
@@ -44,24 +42,26 @@ sub _dispatch {
     return $command->dispatch($dom) or Plync::HTTPException->throw(400);
 }
 
-sub _parse_xml {
+sub _parse_command {
     my $self = shift;
-    my ($xml) = @_;
+    my ($dom) = @_;
+
+    $dom = $class->_parse_xml($dom) unless blessed $dom;
 
     return try {
-        XML::LibXML->new(no_network => 1)->parse_string($xml);
+        $dom->findvalue('name(*)');
     }
     catch {
         Plync::HTTPException->throw(400, message => 'Malformed XML');
     };
 }
 
-sub _parse_command {
+sub _parse_xml {
     my $self = shift;
-    my ($dom) = @_;
+    my ($xml) = @_;
 
     return try {
-        $dom->findvalue('name(*)');
+        XML::LibXML->new(no_network => 1)->parse_string($xml);
     }
     catch {
         Plync::HTTPException->throw(400, message => 'Malformed XML');

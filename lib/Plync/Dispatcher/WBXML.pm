@@ -5,9 +5,11 @@ use warnings;
 
 use base 'Plync::Dispatcher';
 
+use constant DEBUG => $ENV{PLYNC_DEBUG};
+
 use Plync::HTTPException;
-use Plync::WBXML::Parser;
 use Plync::WBXML::Builder;
+use Plync::WBXML::Parser;
 use Plync::WBXML::Schema::ActiveSync;
 
 use Try::Tiny;
@@ -34,9 +36,11 @@ sub _parse {
 
         $parser->parse($wbxml);
 
-        warn '>' x 20;
-        warn $parser->dom->toString(2);
-        warn '>' x 20;
+        if (DEBUG) {
+            warn '>' x 20;
+            warn $parser->dom->toString(2);
+            warn '>' x 20;
+        }
 
         $parser->dom;
     }
@@ -55,9 +59,11 @@ sub _build {
             schema => Plync::WBXML::Schema::ActiveSync->schema);
         $builder->build($dom);
 
-        warn '<' x 20;
-        warn $dom->toString(2);
-        warn '<' x 20;
+        if (DEBUG) {
+            warn '<' x 20;
+            warn $dom->toString(2);
+            warn '<' x 20;
+        }
 
         $builder->to_wbxml;
     }

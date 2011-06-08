@@ -39,19 +39,13 @@ sub appendTo {
         $root->addNewChild('Email:', camelize($_))->appendText($self->{$_});
     }
 
-    #use Data::Dumper;
-    #warn Dumper $self->{body};
-    #$root->addNewChild('Email:', 'Body')->appendText($self->{body}->{data});
-    #$root->addNewChild('Email:', 'BodySize')->appendText(11);
-    #$root->addNewChild('Email:', 'BodyTruncated')->appendText(0);
+    my $body = $root->addNewChild('AirSyncBase:', 'Body');
+    for (qw(type estimated_data_size truncated data)) {
+        next unless defined $self->{body}->{$_};
 
-    #my $body = $root->addNewChild('AirSyncBase:', 'Body');
-    #for (qw(type estimated_data_size truncated data)) {
-    #    next unless defined $self->{body}->{$_};
-
-    #    $body->addNewChild('AirSyncBase:', camelize($_))
-    #      ->appendText($self->{body}->{$_});
-    #}
+        $body->addNewChild('AirSyncBase:', camelize($_))
+          ->appendText($self->{body}->{$_});
+    }
 
     for (
         qw(
@@ -65,16 +59,16 @@ sub appendTo {
         $root->addNewChild('Email:', camelize($_))->appendText($self->{$_});
     }
 
-    #$root->addNewChild('AirSyncBase:', 'NativeBodyType')
-    #  ->appendText($self->{native_body_type});
+    $root->addNewChild('AirSyncBase:', 'NativeBodyType')
+      ->appendText($self->{native_body_type});
 
-    #$root->addNewChild('Email2:', 'ConversationId')
-    #  ->appendText($self->{conversation_id});
-    #$root->addNewChild('Email2:', 'ConversationIndex')
-    #  ->appendText($self->{conversation_index});
+    $root->addNewChild('Email2:', 'ConversationId')
+      ->appendText($self->{conversation_id});
+    $root->addNewChild('Email2:', 'ConversationIndex')
+      ->appendText($self->{conversation_index});
 
-    #$root->addNewChild('Email:', 'Categories')
-    #  ->appendText($self->{categories});
+    $root->addNewChild('Email:', 'Categories')
+      ->appendText($self->{categories});
 
     return $root;
 }

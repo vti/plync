@@ -6,13 +6,9 @@ use warnings;
 use base 'Plync::Command::Base';
 
 use Plync::Folders;
-use Plync::Data::Email;
 
 sub _dispatch {
     my $self = shift;
-
-    #use Data::Dumper;
-    #warn Dumper $self->req;
 
     my $collections = $self->req->collections;
 
@@ -124,8 +120,6 @@ sub _dispatch {
             sync_key      => $folder->sync_key
         );
     }
-
-    #warn Dumper $self->res;
 }
 
 1;

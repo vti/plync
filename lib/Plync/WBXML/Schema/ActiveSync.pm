@@ -157,9 +157,6 @@ our $CODES = {
 
     # Email
     0x02 => {
-        0x0e => 'BodyTruncated',
-        0x0d => 'BodySize',
-        0x0c => 'Body',
         0x0F => 'DateReceived',
         0x11 => 'DisplayTo',
         0x12 => 'Importance',
@@ -762,9 +759,6 @@ our $TAGS = {
 
     # 0x02
     Email => {
-        'BodyTruncated' =>   0x0e,
-        'BodySize' =>        0x0d,
-        'Body' =>            0x0c,
         'DateReceived'            => 0x0F,
         'DisplayTo'               => 0x11,
         'Importance'              => 0x12,
