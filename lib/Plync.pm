@@ -8,7 +8,7 @@ use Plack::Request;
 
 use Plync::User;
 use Plync::HTTPException;
-use Plync::Dispatcher::WBXML;
+use Plync::Dispatcher;
 
 our $VERSION = '0.001000';
 
@@ -53,6 +53,8 @@ sub compile_psgi_app {
             return Plync::User->authenticate($username, $password);
         };
 
+        enable "+Plync::Middleware::WBXML";
+
         $self->app;
     };
 }
@@ -84,13 +86,31 @@ sub dispatch {
         $user_agent = $header;
     }
 
-    my $body = Plync::Dispatcher::WBXML->dispatch($req->content);
+    my $body = Plync::Dispatcher->dispatch($req->content);
 
-    my $res = $req->new_response(200);
-    $res->content_type('application/vnd.ms-sync.wbxml');
-    $res->body($body);
+    if (ref $body eq 'CODE') {
+        return sub {
+            my $respond = shift;
 
-    return $res->finalize;
+            $respond->(200, ['Content-Type' => 'text/xml']);
+
+            $body->(
+                sub {
+                    my $res = shift;
+
+                    my $writer = $respond->write($res);
+                    $writer->close;
+                }
+            );
+        }
+    }
+    else {
+        my $res = $req->new_response(200);
+        $res->content_type('text/xml');
+        $res->body($body);
+
+        return $res->finalize;
+    }
 }
 
 sub _dispatch_OPTIONS {
