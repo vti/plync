@@ -6,10 +6,6 @@ use warnings;
 use lib 'lib';
 
 use Plync;
-
-use Plack::Builder;
-use Plack::Request;
-
 use Plync::Folder;
 use Plync::Folders;
 
@@ -34,21 +30,4 @@ $folders->add(
 );
 $folders->save;
 
-my $app = sub {
-    my $env = shift;
-
-    return Plync->dispatch($env);
-};
-
-builder {
-    enable "ContentLength";
-
-    enable "HTTPExceptions";
-
-    enable "Auth::Basic", authenticator => sub {
-        my ($username, $password) = @_;
-        return $username eq 'foo' && $password eq 'bar';
-    };
-
-    $app;
-};
+Plync->new;

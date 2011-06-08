@@ -3,11 +3,16 @@ package Plync;
 use strict;
 use warnings;
 
-use Plync::HTTPException;
-use Plync::Dispatcher::WBXML;
+use Plack::Builder;
 use Plack::Request;
 
+use Plync::User;
+use Plync::HTTPException;
+use Plync::Dispatcher::WBXML;
+
 our $VERSION = '0.001000';
+
+use overload q(&{}) => sub { shift->psgi_app }, fallback => 1;
 
 sub new {
     my $class = shift;
@@ -16,6 +21,40 @@ sub new {
     bless $self, $class;
 
     return $self;
+}
+
+sub app {
+    my $self = shift;
+
+    return sub {
+        my $env = shift;
+
+        return $self->dispatch($env);
+    }
+}
+
+sub psgi_app {
+    my $self = shift;
+
+    return $self->{psgi_app} ||= $self->compile_psgi_app;
+}
+
+sub compile_psgi_app {
+    my $self = shift;
+
+    builder {
+        enable "ContentLength";
+
+        enable "HTTPExceptions";
+
+        enable "Auth::Basic", authenticator => sub {
+            my ($username, $password) = @_;
+
+            return Plync::User->authenticate($username, $password);
+        };
+
+        $self->app;
+    };
 }
 
 sub dispatch {
@@ -69,8 +108,7 @@ sub _dispatch_OPTIONS {
     return [
         200,
         [   'MS-Server-ActiveSync'  => '14.00.0536.000',
-            'MS-ASProtocolVersions' => '14.0',
-            #'MS-ASProtocolVersions' => '2.0,2.1,2.5,12.0,12.1,14.0',
+            'MS-ASProtocolVersions' => '12.1,14.0,14.1',
             'MS-ASProtocolCommands' => join(',', @commands)
         ],
         ['']

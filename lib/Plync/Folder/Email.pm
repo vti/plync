@@ -26,7 +26,7 @@ sub load_object {
 
             #estimated_data_size => 116575,
             truncated => 0,
-            data      => 'Hello there'
+            data      => 'Hello there123'
         },
         message_class      => 'IPM.Note',
         internet_CPID      => '1252',

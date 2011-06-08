@@ -46,7 +46,7 @@ sub _parse_command {
     my $self = shift;
     my ($dom) = @_;
 
-    $dom = $class->_parse_xml($dom) unless blessed $dom;
+    $dom = $self->_parse_xml($dom) unless blessed $dom;
 
     return try {
         $dom->findvalue('name(*)');
