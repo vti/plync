@@ -6,16 +6,19 @@ use warnings;
 use base 'Plync::Command::BaseRequest';
 
 sub _parse {
-    my $class = shift;
+    my $self = shift;
     my ($dom) = @_;
 
     my $xpc = XML::LibXML::XPathContext->new($dom->documentElement);
     $xpc->registerNs('fh', 'FolderHierarchy:');
 
     my $sync_key = $xpc->findvalue('//fh:SyncKey[1]');
-    return bless {error => 10} unless defined $sync_key && $sync_key ne '';
+    unless (defined $sync_key && $sync_key ne '') {
+        $self->{error} = 10;
+        return;
+    }
 
-    return bless {sync_key => $sync_key}, $class;
+    $self->{sync_key} = $sync_key;
 }
 
 sub error { shift->{error} }

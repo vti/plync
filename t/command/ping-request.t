@@ -5,7 +5,7 @@ use Test::More tests => 3;
 
 use_ok('Plync::Command::Ping::Request');
 
-my $req = Plync::Command::Ping::Request->parse(<<'EOF');
+my $req = Plync::Command::Ping::Request->new->parse(<<'EOF');
 <?xml version="1.0" encoding="utf-8"?>
 <Ping xmlns="Ping:">
 <HeartbeatInterval>80</HeartbeatInterval>

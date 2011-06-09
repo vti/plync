@@ -12,6 +12,6 @@ my $xml = <<'EOF';
 <FolderSync xmlns="FolderHierarchy:"><SyncKey>0</SyncKey></FolderSync>
 EOF
 
-my $req = Plync::Command::FolderSync::Request->parse($xml);
+my $req = Plync::Command::FolderSync::Request->new->parse($xml);
 
 is($req->sync_key, 0);

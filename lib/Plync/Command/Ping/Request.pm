@@ -8,7 +8,7 @@ use base 'Plync::Command::BaseRequest';
 use XML::LibXML::XPathContext;
 
 sub _parse {
-    my $class = shift;
+    my $self = shift;
     my ($dom) = @_;
 
     my $xpc = XML::LibXML::XPathContext->new($dom->documentElement);
@@ -29,10 +29,8 @@ sub _parse {
           };
     }
 
-    bless {
-        interval => $interval,
-        folders  => \@folders
-    }, $class;
+    $self->{interval} = $interval;
+    $self->{folders}  = \@folders;
 }
 
 sub interval { shift->{interval} }

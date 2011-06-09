@@ -7,7 +7,7 @@ use XML::XPath;
 
 use_ok('Plync::Command::Sync::Request');
 
-my $req = Plync::Command::Sync::Request->parse(<<'EOF');
+my $req = Plync::Command::Sync::Request->new->parse(<<'EOF');
 <?xml version="1.0" encoding="UTF-8"?>
 <Sync xmlns="AirSync:">
   <Collections>
@@ -46,7 +46,7 @@ is_deeply(
     ]
 );
 
-$req = Plync::Command::Sync::Request->parse(<<'EOF');
+$req = Plync::Command::Sync::Request->new->parse(<<'EOF');
 <?xml version="1.0" encoding="UTF-8"?>
 <Sync xmlns="AirSync:">
   <Collections>

@@ -37,7 +37,7 @@ sub dispatch {
     Class::Load::load_class($req_class);
 
     my $req = try {
-        $req_class->parse($dom);
+        $req_class->new->parse($dom);
     }
     catch {
         Plync::HTTPException->throw(500);
@@ -45,7 +45,18 @@ sub dispatch {
 
     $self->req($req);
 
-    $self->_dispatch;
+    my $retval = $self->_dispatch;
+
+    if (ref $retval eq 'CODE') {
+        return sub {
+            my $cb = shift;
+            $retval->(
+                sub {
+                    $cb->($self->res->dom);
+                }
+            );
+          }
+    }
 
     return $self->res->dom;
 }

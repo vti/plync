@@ -8,7 +8,7 @@ use base 'Plync::Command::BaseRequest';
 use String::CamelCase 'decamelize';
 
 sub _parse {
-    my $class = shift;
+    my $self = shift;
     my ($dom) = @_;
 
     my $xpc = XML::LibXML::XPathContext->new($dom->documentElement);
@@ -56,7 +56,7 @@ sub _parse {
         push @collections, $hashref;
     }
 
-    return bless {collections => \@collections}, $class;
+    $self->{collections} = \@collections;
 }
 
 sub collections { shift->{collections} }
