@@ -48,9 +48,17 @@ sub compile_psgi_app {
         enable "HTTPExceptions";
 
         enable "Auth::Basic", authenticator => sub {
-            my ($username, $password) = @_;
+            my ($username, $password, $env) = @_;
 
-            return Plync::User->authenticate($username, $password);
+            my $user = Plync::User->load($username);
+            return unless $user;
+
+            if ($user->check_password($password)) {
+                $env->{'plync.user'} = $user;
+                return 1;
+            }
+
+            return;
         };
 
         enable "+Plync::Middleware::WBXML";
