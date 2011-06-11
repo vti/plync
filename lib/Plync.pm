@@ -3,14 +3,19 @@ package Plync;
 use strict;
 use warnings;
 
+use File::Basename ();
+use File::Spec;
 use Plack::Builder;
 use Plack::Request;
 
-use Plync::User;
-use Plync::HTTPException;
+use Plync::Config;
 use Plync::Dispatcher;
+use Plync::HTTPException;
+use Plync::User;
 
 our $VERSION = '0.001000';
+
+our $HOME;
 
 use overload q(&{}) => sub { shift->psgi_app }, fallback => 1;
 
@@ -20,7 +25,13 @@ sub new {
     my $self = {@_};
     bless $self, $class;
 
+    $self->_load_config;
+
     return $self;
+}
+
+sub import {
+    $HOME = File::Spec->rel2abs(File::Basename::dirname((caller)[1]));
 }
 
 sub app {
@@ -157,6 +168,16 @@ sub _get_client_info {
       unless defined $user && defined $device_id && defined $device_type;
 
     return ($user, $device_id, $device_type);
+}
+
+sub _load_config {
+    my $self = shift;
+
+    my $path = File::Spec->catfile($HOME, 'plync.yml');
+
+    if (-e $path) {
+        Plync::Config->load($path);
+    }
 }
 
 1;
