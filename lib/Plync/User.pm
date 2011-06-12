@@ -3,39 +3,35 @@ package Plync::User;
 use strict;
 use warnings;
 
-sub new {
-    my $class = shift;
+use base 'Plync::Storable';
 
-    my $self = {@_};
-    bless $self, $class;
+use Digest::MD5 ();
 
-    return $self;
+sub id {
+    my $self = shift;
+
+    return join ':', 'user', $self->{username};
 }
 
-sub load {
-    my $class = shift;
-    my ($username) = @_;
-
-    return unless $username eq 'foo';
-
-    return $class->new(username => 'foo');
-}
+sub username { $_[0]->{username} }
+sub password { $_[0]->{password} }
 
 sub check_password {
     my $self = shift;
     my ($password) = @_;
 
-    return $password eq 'bar';
+    return Digest::MD5::md5_hex($password) eq $self->{password};
 }
 
-sub authenticate {
-    my $class = shift;
-    my ($username, $password) = @_;
+sub save {
+    my $self = shift;
 
-    my $user = $class->load($username);
-    return unless $user;
+    die "Required 'username'" unless defined $self->{username};
+    die "Required 'password'" unless defined $self->{password};
 
-    return $user->check_password($password);
+    $self->{password} = Digest::MD5::md5_hex($self->{password});
+
+    return $self->SUPER::save(@_);
 }
 
 1;

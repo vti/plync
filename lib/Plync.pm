@@ -61,8 +61,14 @@ sub compile_psgi_app {
         enable "Auth::Basic", authenticator => sub {
             my ($username, $password, $env) = @_;
 
-            my $user = Plync::User->load($username);
-            return unless $user;
+            my $req = Plack::Request->new($env);
+            my $query = $req->query_parameters;
+
+            my $user = Plync::User->new(
+                username  => $username,
+                device_id => $query->{DeviceId}
+            );
+            return unless $user->load;
 
             if ($user->check_password($password)) {
                 $env->{'plync.user'} = $user;
