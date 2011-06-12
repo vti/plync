@@ -21,6 +21,11 @@ sub call {
     my ($self, $env) = @_;
 
     my $req = Plack::Request->new($env);
+
+    if ($req->method ne 'POST') {
+        return $self->app->($env);
+    }
+
     my $dom = $self->_parse($req->content);
 
     $env->{'CONTENT_LENGTH'} = length($dom->toString);
