@@ -11,6 +11,7 @@ use Plack::Request;
 use Plync::Config;
 use Plync::Dispatcher;
 use Plync::HTTPException;
+use Plync::Storage;
 use Plync::User;
 
 our $VERSION = '0.001000';
@@ -64,11 +65,8 @@ sub compile_psgi_app {
             my $req = Plack::Request->new($env);
             my $query = $req->query_parameters;
 
-            my $user = Plync::User->new(
-                username  => $username,
-                device_id => $query->{DeviceId}
-            );
-            return unless $user->load;
+            my $user = Plync::Storage->new->load("user:$username");
+            return unless $user;
 
             if ($user->check_password($password)) {
                 $env->{'plync.user'} = $user;
@@ -90,11 +88,11 @@ sub dispatch {
 
     my $req = Plack::Request->new($env);
 
-    return $class->_dispatch_OPTIONS if $req->method eq 'OPTIONS';
+    return $self->_dispatch_OPTIONS if $req->method eq 'OPTIONS';
 
     Plync::HTTPException->throw(400) unless $req->method eq 'POST';
 
-    my ($user, $device_id, $device_type) = $class->_get_client_info($req);
+    my ($user, $device_id, $device_type) = $self->_get_client_info($req);
 
     my $protocol_version = '1.0';
     if (my $header = $req->headers->header('Ms-Asprotocolversion')) {
@@ -139,7 +137,7 @@ sub dispatch {
 }
 
 sub _dispatch_OPTIONS {
-    my $class = shift;
+    my $self = shift;
 
     my @commands = (
         qw/
