@@ -10,18 +10,27 @@ use Scalar::Util qw(blessed);
 use Try::Tiny;
 use XML::LibXML;
 
-sub dispatch {
+sub new {
     my $class = shift;
-    my ($env, $dom) = @_;
 
-    my $command = $class->_parse_command($dom);
+    my $self = {@_};
+    bless $self, $class;
+
+    return $self;
+}
+
+sub dispatch {
+    my $self = shift;
+    my ($dom) = @_;
+
+    my $command = $self->_parse_command($dom);
 
     my $command_class = "Plync::Command::$command";
 
     return try {
         Class::Load::load_class($command_class);
 
-        return $class->_dispatch($env, $command_class, $dom);
+        return $self->_dispatch($command_class, $dom);
     }
     catch {
         $command_class =~ s{::}{/}g;
@@ -34,10 +43,10 @@ sub dispatch {
 }
 
 sub _dispatch {
-    my $class = shift;
-    my ($env, $command_class, $dom) = @_;
+    my $self = shift;
+    my ($command_class, $dom) = @_;
 
-    my $command = $command_class->new(env => $env);
+    my $command = $command_class->new(env => $self->{env});
 
     return $command->dispatch($dom) or Plync::HTTPException->throw(400);
 }

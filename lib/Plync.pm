@@ -85,7 +85,7 @@ sub compile_psgi_app {
 }
 
 sub dispatch {
-    my $class = shift;
+    my $self = shift;
     my ($env) = @_;
 
     my $req = Plack::Request->new($env);
@@ -111,7 +111,7 @@ sub dispatch {
         $user_agent = $header;
     }
 
-    my $body = Plync::Dispatcher->dispatch($env, $req->content);
+    my $body = Plync::Dispatcher->new(env => $env)->dispatch($req->content);
 
     if (ref $body eq 'CODE') {
         return sub {
