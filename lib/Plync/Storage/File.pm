@@ -1,14 +1,14 @@
-package Plync::Storable::File;
+package Plync::Storage::File;
 
 use strict;
 use warnings;
 
-use base 'Plync::Storable::Base';
+use base 'Plync::Storage::Base';
 
 use File::Path ();
 use Storable ();
 
-our $DIRECTORY = File::Spec->catfile(($ENV{PLYNC_HOME} || '.'), 'store');
+our $DIRECTORY = File::Spec->catfile(($ENV{PLYNC_HOME} || '.'), 'storage');
 
 sub new {
     my $self = shift->SUPER::new(@_);
@@ -31,7 +31,7 @@ sub load {
 
 sub save {
     my $self = shift;
-    my ($object, $id) = @_;
+    my ($id, $object) = @_;
 
     Storable::store($object, $self->_path_to($id)) or die $!;
 }

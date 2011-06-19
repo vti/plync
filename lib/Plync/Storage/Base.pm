@@ -1,4 +1,4 @@
-package Plync::Storable::Base;
+package Plync::Storage::Base;
 
 use strict;
 use warnings;
