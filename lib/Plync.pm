@@ -111,7 +111,7 @@ sub dispatch {
         $user_agent = $header;
     }
 
-    my $body = Plync::Dispatcher->dispatch($req->content);
+    my $body = Plync::Dispatcher->dispatch($env, $req->content);
 
     if (ref $body eq 'CODE') {
         return sub {

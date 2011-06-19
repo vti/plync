@@ -12,7 +12,7 @@ use XML::LibXML;
 
 sub dispatch {
     my $class = shift;
-    my ($dom) = @_;
+    my ($env, $dom) = @_;
 
     my $command = $class->_parse_command($dom);
 
@@ -21,7 +21,7 @@ sub dispatch {
     return try {
         Class::Load::load_class($command_class);
 
-        return $class->_dispatch($command_class, $dom);
+        return $class->_dispatch($env, $command_class, $dom);
     }
     catch {
         $command_class =~ s{::}{/}g;
@@ -35,9 +35,9 @@ sub dispatch {
 
 sub _dispatch {
     my $class = shift;
-    my ($command_class, $dom) = @_;
+    my ($env, $command_class, $dom) = @_;
 
-    my $command = $command_class->new;
+    my $command = $command_class->new(env => $env);
 
     return $command->dispatch($dom) or Plync::HTTPException->throw(400);
 }

@@ -46,12 +46,12 @@ eval { Plync::Dispatcher->dispatch };
 isa_ok($@, 'Plync::HTTPException');
 is($@->message, 'Malformed XML');
 
-eval { Plync::Dispatcher->dispatch('asdasd') };
+eval { Plync::Dispatcher->dispatch({}, 'asdasd') };
 isa_ok($@, 'Plync::HTTPException');
 is($@->message, 'Malformed XML');
 
 eval {
-    Plync::Dispatcher->dispatch(
+    Plync::Dispatcher->dispatch({},
         '<?xml version="1.0" encoding="utf-8"?><Foo xmlns="Foo:"></Foo>');
 };
 isa_ok($@, 'Plync::HTTPException');
@@ -70,7 +70,7 @@ Hello!
 </Test>
 EOF
 
-is_deeply(Plync::Dispatcher->dispatch($req), $res);
+is_deeply(Plync::Dispatcher->dispatch({}, $req), $res);
 
 $req = <<'EOF';
 <?xml version="1.0" encoding="utf-8"?>
@@ -85,7 +85,7 @@ Hello!
 </Sub>
 EOF
 
-my $cb = Plync::Dispatcher->dispatch($req);
+my $cb = Plync::Dispatcher->dispatch({}, $req);
 $cb->(
     sub {
         is($_[0], $res);
