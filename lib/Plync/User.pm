@@ -3,9 +3,20 @@ package Plync::User;
 use strict;
 use warnings;
 
-use base 'Plync::Storable';
-
 use Digest::MD5 ();
+
+sub new {
+    my $class = shift;
+
+    my $self = {@_};
+    bless $self, $class;
+
+    if (defined $self->{password}) {
+        $self->{password} = Digest::MD5::md5_hex($self->{password});
+    }
+
+    return $self;
+}
 
 sub id {
     my $self = shift;
@@ -21,17 +32,6 @@ sub check_password {
     my ($password) = @_;
 
     return Digest::MD5::md5_hex($password) eq $self->{password};
-}
-
-sub save {
-    my $self = shift;
-
-    die "Required 'username'" unless defined $self->{username};
-    die "Required 'password'" unless defined $self->{password};
-
-    $self->{password} = Digest::MD5::md5_hex($self->{password});
-
-    return $self->SUPER::save(@_);
 }
 
 1;
