@@ -3,15 +3,15 @@ package Plync::Storage;
 use strict;
 use warnings;
 
-our $DRIVER = 'File';
-
-use Plync::Storage::File;
+use Class::Load ();
 
 sub new {
     my $class = shift;
 
     my $self = {@_};
     bless $self, $class;
+
+    $self->{driver} ||= 'Memory';
 
     return $self;
 }
@@ -24,11 +24,8 @@ sub load {
 
 sub save {
     my $self = shift;
-    my ($object) = @_;
 
-    my $id = $object->id;
-
-    return $self->_driver->save($id, $object);
+    return $self->_driver->save(@_);
 }
 
 sub delete {
@@ -40,13 +37,15 @@ sub delete {
 sub _driver {
     my $self = shift;
 
-    $self->{driver} ||= do {
-        my $driver_class = __PACKAGE__ . '::' . $DRIVER;
+    $self->{_driver} ||= do {
+        my $driver_class = __PACKAGE__ . '::' . $self->{driver};
+
+        Class::Load::load_class($driver_class);
 
         $driver_class->new(@_);
     };
 
-    return $self->{driver};
+    return $self->{_driver};
 }
 
 1;

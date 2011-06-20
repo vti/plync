@@ -7,22 +7,34 @@ sub id {1}
 use strict;
 use warnings;
 
-use Test::More tests => 6;
-
-BEGIN {
-    $ENV{PLYNC_HOME} = 't';
-    rmdir "$ENV{PLYNC_HOME}/storage";
-}
+use Test::More tests => 5;
 
 use_ok('Plync::Storage');
 
-ok Plync::Storage->new->save(Object->new(foo => 'bar'));
+my $storage = Plync::Storage->new;
 
-my $object = Plync::Storage->new->load(1);
-ok($object);
-is($object->id, 1);
+$storage->save(1, Object->new(foo => 'bar'), sub { });
 
-ok Plync::Storage->new->delete($object->id);
-ok !Plync::Storage->new->load($object->id);
+$storage->load(
+    2,
+    sub {
+        ok !$_[1];
+    }
+);
 
-rmdir "$ENV{PLYNC_HOME}/storage";
+$storage->load(
+    1,
+    sub {
+        ok $_[1];
+        is $_[1]->id, 1;
+    }
+);
+
+$storage->delete(1, sub { });
+
+$storage->load(
+    1,
+    sub {
+        ok !$_[1];
+    }
+);
