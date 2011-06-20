@@ -46,7 +46,7 @@ sub _dispatch {
     my $self = shift;
     my ($command_class, $dom) = @_;
 
-    my $command = $command_class->new(env => $self->{env});
+    my $command = $command_class->new(device => $self->{device});
 
     return $command->dispatch($dom) or Plync::HTTPException->throw(400);
 }
