@@ -6,7 +6,6 @@ use warnings;
 use Plync::HTTPException;
 use Class::Load;
 use Try::Tiny;
-use Scalar::Util qw(weaken);
 
 sub new {
     my $class = shift;
@@ -14,12 +13,10 @@ sub new {
     my $self = {@_};
     bless $self, $class;
 
-    weaken $self->{env};
-
     return $self;
 }
 
-sub env { $_[0]->{env} }
+sub device { $_[0]->{device} }
 
 sub req { @_ > 1 ? $_[0]->{req} = $_[1] : $_[0]->{req} }
 
@@ -55,11 +52,8 @@ sub dispatch {
     if (ref $retval eq 'CODE') {
         return sub {
             my $cb = shift;
-            $retval->(
-                sub {
-                    $cb->($self->res->dom);
-                }
-            );
+
+            $retval->(sub { $cb->($self->res->dom) });
           }
     }
 
