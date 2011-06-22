@@ -5,11 +5,29 @@ use Test::More tests => 5;
 
 use_ok('Plync');
 
+use AnyEvent;
 use Plack::Test;
 use Plack::Builder;
 use HTTP::Request;
 
-my $app = Plync->new->psgi_app;
+use Plync::Storage;
+use Plync::User;
+use Plync::UserManager;
+
+my $storage = Plync::Storage->new;
+$storage->save(
+    'user:foo' => Plync::User->new(
+        username => 'foo',
+        password => 'bar'
+    ),
+    sub { }
+);
+
+my $app =
+  Plync->new(user_manager => Plync::UserManager->new(storage => $storage))
+  ->psgi_app;
+
+my $cv = AnyEvent->condvar;
 
 test_psgi $app, sub {
     my $cb  = shift;
@@ -20,7 +38,13 @@ test_psgi $app, sub {
     ok($res->headers->header('ms-asprotocolversions'));
 
     is $res->content, '';
+
+    $cv->send;
 };
+
+$cv->wait;
+
+$cv = AnyEvent->condvar;
 
 test_psgi $app, sub {
     my $cb  = shift;
@@ -29,7 +53,13 @@ test_psgi $app, sub {
     my $res = $cb->($req);
 
     is $res->content, 'Authorization required';
+
+    $cv->send;
 };
+
+$cv->wait;
+
+$cv = AnyEvent->condvar;
 
 test_psgi $app, sub {
     my $cb  = shift;
@@ -38,4 +68,8 @@ test_psgi $app, sub {
     my $res = $cb->($req);
 
     is $res->content, 'Bad Request';
+
+    $cv->send;
 };
+
+$cv->wait;
