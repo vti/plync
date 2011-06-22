@@ -10,7 +10,7 @@ use XML::LibXML;
 sub new {
     my $class = shift;
 
-    my $self = {};
+    my $self = {@_};
     bless $self, $class;
 
     return $self;

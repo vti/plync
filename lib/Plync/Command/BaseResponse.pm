@@ -23,7 +23,7 @@ sub dom {
 sub to_string {
     my $self = shift;
 
-    return $self->dom->toString;
+    return $self->dom->toString(@_);
 }
 
 1;
