@@ -3,16 +3,20 @@ package Plync;
 use strict;
 use warnings;
 
+use AnyEvent;
 use File::Basename ();
 use File::Spec;
+use MIME::Base64;
 use Plack::Builder;
 use Plack::Request;
 
+use Plync::Backend;
 use Plync::Config;
+use Plync::DevicePool;
 use Plync::Dispatcher;
 use Plync::HTTPException;
 use Plync::Storage;
-use Plync::User;
+use Plync::UserManager;
 
 our $VERSION = '0.001000';
 
@@ -25,6 +29,8 @@ sub new {
 
     my $self = {@_};
     bless $self, $class;
+
+    $self->{user_manager} ||= Plync::UserManager->new;
 
     $self->_load_config;
 
@@ -41,7 +47,76 @@ sub app {
     return sub {
         my $env = shift;
 
-        return $self->dispatch($env);
+        return sub {
+            my $respond = shift;
+
+            $self->authorize(
+                $env, $respond,
+                $self->authorization_succeeded($env),
+                $self->authorization_failed($env)
+            );
+        }
+    }
+}
+
+# Basic authorization methods borrowed from Plack::Middleware::Auth::Basic
+sub authorize {
+    my $self = shift;
+    my ($env, $respond, $ok_cb, $error_cb) = @_;
+
+    my $auth = $env->{HTTP_AUTHORIZATION} or return $error_cb->($respond);
+
+    if ($auth =~ /^Basic (.*)$/) {
+        my($username, $password) = split /:/, (MIME::Base64::decode($1) || ":");
+        $password = '' unless defined $password;
+
+        return $self->{user_manager}->authorize(
+            $username,
+            $password,
+            sub {
+                my $user = $_[1];
+
+                $env->{REMOTE_USER} = $username;
+                $env->{'plync.user'} = $user;
+
+                $ok_cb->($respond);
+            },
+            sub { $error_cb->($respond) }
+        );
+    }
+
+    return $error_cb->($respond);
+}
+
+sub authorization_succeeded {
+    my $self = shift;
+    my ($env) = @_;
+
+    return sub {
+        my $respond = shift;
+
+        $self->dispatch($env, $respond);
+    }
+}
+
+sub authorization_failed {
+    my $self = shift;
+    my ($env) = @_;
+
+    return sub {
+        my $respond = shift;
+
+        my $body = 'Authorization required';
+
+        $respond->(
+            [   401,
+                [   'Content-Type'     => 'text/plain',
+                    'Content-Length'   => length $body,
+                    'WWW-Authenticate' => 'Basic realm="Authorization required"'
+                ],
+                [$body]
+            ]
+        );
     }
 }
 
@@ -59,23 +134,6 @@ sub compile_psgi_app {
 
         enable "HTTPExceptions";
 
-        enable "Auth::Basic", authenticator => sub {
-            my ($username, $password, $env) = @_;
-
-            my $req = Plack::Request->new($env);
-            my $query = $req->query_parameters;
-
-            my $user = Plync::Storage->new->load("user:$username");
-            return unless $user;
-
-            if ($user->check_password($password)) {
-                $env->{'plync.user'} = $user;
-                return 1;
-            }
-
-            return;
-        };
-
         enable "+Plync::Middleware::WBXML";
 
         $self->app;
@@ -84,15 +142,34 @@ sub compile_psgi_app {
 
 sub dispatch {
     my $self = shift;
-    my ($env) = @_;
+    my ($env, $respond) = @_;
 
     my $req = Plack::Request->new($env);
 
-    return $self->_dispatch_OPTIONS if $req->method eq 'OPTIONS';
+    return $respond->($self->_dispatch_OPTIONS) if $req->method eq 'OPTIONS';
 
     Plync::HTTPException->throw(400) unless $req->method eq 'POST';
 
-    my ($user, $device_id, $device_type) = $self->_get_client_info($req);
+    my $device = $self->_build_device($env);
+
+    my $dispatcher = $self->_build_dispatcher(device => $device);
+
+    my $res = $dispatcher->dispatch($req->content);
+
+    if (ref $res eq 'CODE') {
+        $res->(
+            sub { $respond->([200, ['Content-Type' => 'text/xml'], $_[0]]) });
+    }
+    else {
+        $respond->([200, ['Content-Type' => 'text/xml'], $res]);
+    }
+}
+
+sub _build_device {
+    my $self = shift;
+    my ($env) = @_;
+
+    my $req = Plack::Request->new($env);
 
     my $protocol_version = '1.0';
     if (my $header = $req->headers->header('Ms-Asprotocolversion')) {
@@ -109,31 +186,32 @@ sub dispatch {
         $user_agent = $header;
     }
 
-    my $body = Plync::Dispatcher->new(env => $env)->dispatch($req->content);
 
-    if (ref $body eq 'CODE') {
-        return sub {
-            my $respond = shift;
+    my (undef, $device_id, $device_type) = $self->_get_client_info($req);
 
-            $respond->(200, ['Content-Type' => 'text/xml']);
+    my $user     = $env->{'plync.user'};
+    my $username = $user->username;
 
-            $body->(
-                sub {
-                    my $res = shift;
-
-                    my $writer = $respond->write($res);
-                    $writer->close;
-                }
-            );
-        }
+    my $device = Plync::DevicePool->find_device("$username:$device_id");
+    if (!$device) {
+        $device = Plync::DevicePool->add_device(
+            id               => "$username:$device_id",
+            type             => $device_type,
+            user             => $user,
+            backend          => Plync::Backend->new('Test', user => $user),
+            protocol_version => $protocol_version,
+            policy_key       => $policy_key,
+            user_agent       => $user_agent
+        );
     }
-    else {
-        my $res = $req->new_response(200);
-        $res->content_type('text/xml');
-        $res->body($body);
 
-        return $res->finalize;
-    }
+    return $device;
+}
+
+sub _build_dispatcher {
+    my $self = shift;
+
+    Plync::Dispatcher->new(@_);
 }
 
 sub _dispatch_OPTIONS {
