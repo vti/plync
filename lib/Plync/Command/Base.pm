@@ -32,14 +32,10 @@ sub dispatch {
     my $self = shift;
     my ($dom) = @_;
 
-    my $class = ref $self;
+    my $req = $self->_build_request;
 
-    my $req_class = "$class\::Request";
-
-    Class::Load::load_class($req_class);
-
-    my $req = try {
-        $req_class->new->parse($dom);
+    try {
+        $req->parse($dom);
     }
     catch {
         Plync::HTTPException->throw(500);
@@ -58,6 +54,17 @@ sub dispatch {
     }
 
     return $self->res->dom;
+}
+
+sub _build_request {
+    my $self = shift;
+    my $class = ref $self;
+
+    my $req_class = "$class\::Request";
+
+    Class::Load::load_class($req_class);
+
+    return $req_class->new(@_);
 }
 
 1;
