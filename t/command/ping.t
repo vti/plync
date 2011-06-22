@@ -1,23 +1,7 @@
-use strict;
-use warnings;
+#!/usr/bin/env perl
 
-use Test::More tests => 1;
+use lib 't/lib';
 
-use_ok('Plync::Command::Ping');
+use PlyncCommandPingTest;
 
-my $xml = <<'EOF';
-<?xml version="1.0" encoding="utf-8"?>
-<Ping xmlns="Ping:">
-<HeartbeatInterval>80</HeartbeatInterval>
-<Folders>
-<Folder>
-<Id>5</Id>
-<Class>Email</Class>
-</Folder>
-</Folders>
-</Ping>
-EOF
-
-my $command = Plync::Command::Ping->new;
-$command->dispatch($xml);
-is($command->res->to_string, '');
+Test::Class->runtests;
