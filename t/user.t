@@ -12,13 +12,3 @@ isnt($user->password, '123');
 
 ok($user->check_password('123'));
 ok(!$user->check_password('hello'));
-
-$user->add_folder(
-    id           => 1,
-    class        => 'Email',
-    type         => 'Inbox',
-    display_name => 'Inbox'
-);
-
-is($user->folders->count, 1);
-is($user->folders->folders->[0]->class, 'Email');
