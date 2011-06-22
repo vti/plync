@@ -6,31 +6,17 @@ use warnings;
 use lib 'lib';
 
 use Plync;
-use Plync::Folder;
-use Plync::Folders;
+use Plync::User;
+use Plync::UserManager;
+use Plync::Storage;
 
-my $user = Plync::User->new(username => 'foo', password => 'bar');
-$user->save;
+my $storage = Plync::Storage->new;
+$storage->save(
+    'user:foo' => Plync::User->new(
+        username => 'foo',
+        password => 'bar'
+    ),
+    sub { }
+);
 
-#my $folders = Plync::Folders->new;
-#$folders->add(
-#    Plync::Folder->new(
-#        id           => 'root',
-#        parent_id    => 0,
-#        type         => 2,
-#        class        => 'Email',
-#        display_name => 'Inbox'
-#      )
-#);
-#$folders->add(
-#    Plync::Folder->new(
-#        id           => 2,
-#        parent_id    => 0,
-#        type         => 12,
-#        class        => 'Email',
-#        display_name => 'Yahoo2'
-#      )
-#);
-#$folders->save;
-
-Plync->new;
+Plync->new(user_manager => Plync::UserManager->new(storage => $storage));
