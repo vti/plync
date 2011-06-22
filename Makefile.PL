@@ -35,12 +35,16 @@ WriteMakefile(
     ),
 
     PREREQ_PM => {
-        'Carp'                  => '0',
-        'Class::Load'           => '0',
-        'Plack'                 => '0',
-        'Scalar::Util'          => '0',
-        'Try::Tiny'             => '0',
-        'XML::LibXML'           => '0',
+        'AnyEvent'                  => '0',
+        'Carp'                      => '0',
+        'Class::Load'               => '0',
+        'Plack'                     => '0',
+        'Scalar::Util'              => '0',
+        'Test::Class'               => '0',
+        'Test::MockObject::Extends' => '0',
+        'Test::More'                => '0',
+        'Try::Tiny'                 => '0',
+        'XML::LibXML'               => '0',
     },
     test => {TESTS => 't/*.t t/*/*.t t/*/*/*.t t/*/*/*/*.t'}
 );
