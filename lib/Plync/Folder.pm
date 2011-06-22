@@ -3,8 +3,6 @@ package Plync::Folder;
 use strict;
 use warnings;
 
-use base 'Plync::Stateful';
-
 our %FOLDER_TYPES = (
     Folder   => 1,
     Inbox    => 2,
@@ -30,7 +28,12 @@ our %FOLDER_TYPES = (
 );
 
 sub new {
-    my $self = shift->SUPER::new(@_);
+    my $class = shift;
+
+    my $self = {@_};
+    bless $self, $class;
+
+    die "Missing param 'class'" unless defined $self->{class};
 
     if ($self->{class} eq 'Email') {
         die "Missign param 'type'" unless defined $self->{type};
@@ -40,11 +43,13 @@ sub new {
         $self->{type} = $FOLDER_TYPES{$self->{class}};
     }
 
-    for (qw(id class type display_name)) {
+    for (qw(id type display_name)) {
         die "Missing param '$_'" unless defined $self->{$_};
     }
 
     $self->{parent_id} = 0 unless defined $self->{parent_id};
+
+    $self->{items} ||= [];
 
     return $self;
 }
@@ -57,5 +62,14 @@ sub type      { @_ > 1 ? $_[0]->{type}      = $_[1] : $_[0]->{type} }
 sub display_name {
     @_ > 1 ? $_[0]->{display_name} = $_[1] : $_[0]->{display_name};
 }
+
+sub add_item {
+    my $self = shift;
+    my ($item) = @_;
+
+    push @{$self->{items}}, $item;
+}
+
+sub items { $_[0]->{items} }
 
 1;

@@ -1,4 +1,4 @@
-package Plync::Stateful;
+package Plync::Syncable;
 
 use strict;
 use warnings;
@@ -11,7 +11,7 @@ sub new {
     my $self = {@_};
     bless $self, $class;
 
-    $self->{sync_key} = '0';
+    $self->{sync_key} = 0;
 
     return $self;
 }
@@ -38,7 +38,7 @@ sub _generate_key {
     my $self = shift;
 
     if (my $generator = $self->{sync_key_generator}) {
-        return blessed $generator ? $generator->generate : $generator->();
+        return blessed $generator ? $generator->generate : $generator->($self);
     }
 
     my $key = '';
