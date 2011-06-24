@@ -3,6 +3,8 @@ package Plync::FolderSet;
 use strict;
 use warnings;
 
+use Digest::MD5 ();
+
 sub new {
     my $class = shift;
 
@@ -31,7 +33,7 @@ sub delete {
 
     my @list;
     foreach my $item (@{$self->list}) {
-        push @list, $item unless $item->id == $id;
+        push @list, $item unless $item->id eq $id;
     }
 
     $self->{folders} = [@list];
@@ -66,6 +68,18 @@ sub list {
     my $self = shift;
 
     return $self->{folders};
+}
+
+sub checksum {
+    my $self = shift;
+
+    my $ctx = Digest::MD5->new;
+
+    foreach my $folder (@{$self->list}) {
+        $ctx->add($folder->checksum);
+    }
+
+    return $ctx->hexdigest;
 }
 
 1;

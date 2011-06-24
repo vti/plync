@@ -7,11 +7,30 @@ use base 'PlyncCommandTestBase';
 
 use Test::Plync;
 use Test::Plync::Backend;
+use Plync::FolderSet;
 
 sub make_fixture : Test(setup) {
     my $self = shift;
 
-    my $backend = Test::Plync->build_backend;
+    my $backend = Test::Plync->build_backend(
+        fetch_folders => sub {
+            my $self = shift;
+            my ($cb) = @_;
+
+            my $folder_set = Plync::FolderSet->new;
+            $folder_set->add(
+                Plync::Folder->new(
+                    id           => 1,
+                    class        => 'Email',
+                    type         => 'Inbox',
+                    display_name => 'Inbox'
+                )
+            );
+
+            $cb->($self, $folder_set);
+
+        }
+    );
 
     my $device = Test::Plync->build_device(backend => $backend);
 
@@ -52,7 +71,7 @@ EOF
 <?xml version="1.0" encoding="utf-8"?>
 <FolderSync xmlns="FolderHierarchy:">
   <Status>1</Status>
-  <SyncKey>1</SyncKey>
+  <SyncKey>082c7b0055cb85653eb6ed273ee6fb37</SyncKey>
   <Changes>
     <Count>1</Count>
     <Add>
@@ -83,7 +102,7 @@ EOF
     $in = <<'EOF';
 <?xml version="1.0" encoding="UTF-8"?>
 <FolderSync xmlns="FolderHierarchy:">
-  <SyncKey>1</SyncKey>
+  <SyncKey>082c7b0055cb85653eb6ed273ee6fb37</SyncKey>
 </FolderSync>
 EOF
 
@@ -91,7 +110,7 @@ EOF
 <?xml version="1.0" encoding="utf-8"?>
 <FolderSync xmlns="FolderHierarchy:">
   <Status>1</Status>
-  <SyncKey>2</SyncKey>
+  <SyncKey>082c7b0055cb85653eb6ed273ee6fb37</SyncKey>
 </FolderSync>
 EOF
 

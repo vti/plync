@@ -19,4 +19,4 @@ $storage->save(
     sub { }
 );
 
-Plync->new(user_manager => Plync::UserManager->new(storage => $storage));
+Plync->new(backend => '+Test::Plync::Backend', user_manager => Plync::UserManager->new(storage => $storage));

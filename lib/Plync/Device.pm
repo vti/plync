@@ -3,8 +3,6 @@ package Plync::Device;
 use strict;
 use warnings;
 
-use Plync::FolderSetSyncable;
-
 sub new {
     my $class = shift;
 
@@ -29,13 +27,7 @@ sub fetch_folders {
             my $backend = shift;
             my ($folder_set) = @_;
 
-            $self->{folder_set} = $self->_build_folder_set($folder_set);
-
-            foreach my $folder (@{$folder_set->list}) {
-                $folder_set->delete($folder->id);
-                $self->{folder_set}->add($folder);
-            }
-
+            $self->{folder_set} = $folder_set;
             return $cb->($self, $self->{folder_set});
         }
     );
@@ -57,7 +49,7 @@ sub fetch_folder {
     }
 
     $self->backend->fetch_folder(
-        $folder => sub {
+        $folder->id => sub {
             my $backend = shift;
             my ($folder) = @_;
 
@@ -81,23 +73,11 @@ sub fetch_folder_item {
     );
 }
 
-sub start_watch_folders {
+sub watch {
     my $self = shift;
     my ($folders, $cb) = @_;
 
-}
-
-sub stop_watch_folders {
-    my $self = shift;
-    my ($folders, $cb) = @_;
-
-    $cb->();
-}
-
-sub _build_folder_set {
-    my $self = shift;
-
-    return Plync::FolderSetSyncable->new(@_);
+    $self->backend->watch($folders, $cb);
 }
 
 1;

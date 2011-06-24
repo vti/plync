@@ -6,11 +6,56 @@ use warnings;
 use base 'PlyncCommandTestBase';
 
 use Test::Plync;
+use Plync::Email;
+use Plync::Folder;
+use Plync::FolderSet;
 
 sub make_fixture : Test(setup) {
     my $self = shift;
 
-    my $backend = Test::Plync->build_backend;
+    my $item = Plync::Email->new(
+        id                 => 1,
+        to                 => '"Device User" <deviceuser@example.com>',
+        from               => '"Device User 2" <deviceuser2@example.com>',
+        subject            => 'New mail message',
+        date_received      => '2009-07-29T19:25:37.817Z',
+        internet_CPID      => '1252',
+        conversation_id    => 'FF68022058BD485996BE15F6F6D99320',
+        conversation_index => 'CA2CFA8A23'
+    );
+
+    my $folder = Plync::Folder->new(
+        id           => 1,
+        class        => 'Email',
+        type         => 'Inbox',
+        display_name => 'Inbox'
+    );
+    $folder->add_item($item);
+
+    my $backend = Test::Plync->build_backend(
+        fetch_folders => sub {
+            my $self = shift;
+            my ($cb) = @_;
+
+            my $folder_set = Plync::FolderSet->new;
+            $folder_set->add($folder);
+
+            $cb->($self, $folder_set);
+        },
+        fetch_folder => sub {
+            my $self = shift;
+            my ($folder_id, $cb) = @_;
+
+            $cb->($self, $folder);
+        },
+        fetch_folder_item => sub {
+            my $self = shift;
+            my ($folder_id, $item_id, $cb) = @_;
+
+            $cb->($self, $item);
+        }
+    );
+
     my $device = Test::Plync->build_device(backend => $backend);
     $device->fetch_folders(sub { });
 
@@ -39,7 +84,7 @@ EOF
   <Status>1</Status>
   <Collections>
     <Collection>
-      <SyncKey>1</SyncKey>
+      <SyncKey>29cd1bfd3743243d5217e365c8eb7c5d</SyncKey>
       <CollectionId>1</CollectionId>
       <Status>1</Status>
       <Class>Email</Class>
@@ -150,7 +195,7 @@ sub test_fetch_folder_with_items : Test {
   <Collections>
     <Collection>
       <Class>Email</Class>
-      <SyncKey>1</SyncKey>
+      <SyncKey>29cd1bfd3743243d5217e365c8eb7c5d</SyncKey>
       <CollectionId>1</CollectionId>
     </Collection>
   </Collections>
@@ -163,7 +208,7 @@ EOF
   <Status>1</Status>
   <Collections>
     <Collection>
-      <SyncKey>2</SyncKey>
+      <SyncKey>29cd1bfd3743243d5217e365c8eb7c5d</SyncKey>
       <CollectionId>1</CollectionId>
       <Status>1</Status>
       <Class>Email</Class>
@@ -200,7 +245,7 @@ sub test_fetch_folder_item : Test {
   <Collections>
     <Collection>
       <Class>Email</Class>
-      <SyncKey>1</SyncKey>
+      <SyncKey>29cd1bfd3743243d5217e365c8eb7c5d</SyncKey>
       <CollectionId>1</CollectionId>
       <Commands>
         <Fetch>
@@ -218,7 +263,7 @@ EOF
   <Status>1</Status>
   <Collections>
     <Collection>
-      <SyncKey>1</SyncKey>
+      <SyncKey>29cd1bfd3743243d5217e365c8eb7c5d</SyncKey>
       <CollectionId>1</CollectionId>
       <Status>1</Status>
       <Class>Email</Class>

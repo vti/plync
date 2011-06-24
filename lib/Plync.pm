@@ -198,7 +198,7 @@ sub _build_device {
             id               => "$username:$device_id",
             type             => $device_type,
             user             => $user,
-            backend          => Plync::Backend->new('Test', user => $user),
+            backend          => $self->_build_backend(user => $user),
             protocol_version => $protocol_version,
             policy_key       => $policy_key,
             user_agent       => $user_agent
@@ -206,6 +206,12 @@ sub _build_device {
     }
 
     return $device;
+}
+
+sub _build_backend {
+    my $self = shift;
+
+    return Plync::Backend->new($self->{backend}, @_);
 }
 
 sub _build_dispatcher {

@@ -26,14 +26,14 @@ sub _dispatch {
 
         $self->{timer} = $self->_build_timeout(
             $self->req->interval => sub {
-                $self->device->stop_watch_folders(
-                    $folders => sub { $done->() });
+                delete $self->{watcher};
+
+                $done->();
             }
         );
 
-        $self->device->start_watch_folders(
+        $self->{watcher} = $self->device->watch(
             $folders => sub {
-                my $device = shift;
                 my ($folders) = @_;
 
                 delete $self->{timer};

@@ -3,6 +3,8 @@ package Plync::Folder;
 use strict;
 use warnings;
 
+use Digest::MD5 ();
+
 our %FOLDER_TYPES = (
     Folder   => 1,
     Inbox    => 2,
@@ -71,5 +73,19 @@ sub add_item {
 }
 
 sub items { $_[0]->{items} }
+
+sub checksum {
+    my $self = shift;
+
+    my $ctx = Digest::MD5->new;
+
+    $ctx->add($self->id);
+    $ctx->add($self->parent_id);
+    $ctx->add($self->class);
+    $ctx->add($self->type);
+    $ctx->add($self->display_name);
+
+    return $ctx->hexdigest;
+}
 
 1;

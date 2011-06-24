@@ -32,7 +32,7 @@ sub _dispatch {
         }
 
         if (   $device->folder_set
-            && $device->folder_set->sync_key eq $self->req->sync_key)
+            && $device->folder_set->checksum eq $self->req->sync_key)
         {
             $self->_dispatch_no_changes;
         }
@@ -57,8 +57,7 @@ sub _dispatch_initial {
         );
     }
 
-    $folders->synced;
-    $self->res->sync_key($folders->sync_key);
+    $self->res->sync_key($folders->checksum);
 }
 
 sub _dispatch_no_changes {
@@ -68,8 +67,7 @@ sub _dispatch_no_changes {
 
     my $folder_set = $self->device->folder_set;
 
-    $folder_set->synced;
-    $self->res->sync_key($folder_set->sync_key);
+    $self->res->sync_key($folder_set->checksum);
 }
 
 sub _dispatch_resync_needed {

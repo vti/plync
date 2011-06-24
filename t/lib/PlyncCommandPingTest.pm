@@ -41,7 +41,7 @@ EOF
 <?xml version="1.0" encoding="utf-8"?>
 <Ping xmlns="Ping:">
   <Status>5</Status>
-  <HeartbeatInterval>500</HeartbeatInterval>
+  <HeartbeatInterval>600</HeartbeatInterval>
 </Ping>
 EOF
 
@@ -118,7 +118,9 @@ EOF
 </Ping>
 EOF
 
-    my $command = $self->_build_command(device => $self->{device});
+    my $device = $self->{device};
+    $device->mock(watch => sub { });
+    my $command = $self->_build_command(device => $device);
     $command->mock(
         _build_timeout => sub {
             shift;
@@ -158,7 +160,7 @@ EOF
 
     my $device = $self->{device};
     $device->mock(
-        start_watch_folders => sub {
+        watch => sub {
             my $device = shift;
             my ($folders, $cb) = @_;
 
@@ -167,7 +169,7 @@ EOF
                 push @ids, $folder->{id};
             }
 
-            $cb->($device, [@ids]);
+            $cb->([@ids]);
         }
     );
 

@@ -11,15 +11,21 @@ use Test::MockObject::Extends;
 our @EXPORT = @Test::More::EXPORT;
 my $CLASS = __PACKAGE__;
 
-use Test::Plync::Backend;
 use Plync::Device;
-use Plync::FolderSetSyncable;
-use Plync::Folder;
+use Plync::Backend::Base;
 
 sub build_backend {
     my $self = shift;
+    my (%params) = @_;
 
-    return Test::Plync::Backend->new(@_);
+    my $backend = Plync::Backend::Base->new();
+    $backend = Test::MockObject::Extends->new($backend);
+
+    for my $method (keys %params) {
+        $backend->mock($method => $params{$method});
+    }
+
+    return $backend;
 }
 
 sub build_device {
@@ -27,24 +33,6 @@ sub build_device {
 
     my $device = Plync::Device->new(@_);
     $device = Test::MockObject::Extends->new($device);
-    $device->mock(
-        _build_folder_set => sub {
-            my $folder_set =
-              Plync::FolderSetSyncable->new($_[1],
-                sync_key_generator => sub { ++$_[0]->{sync_key} });
-
-            $folder_set = Test::MockObject::Extends->new($folder_set);
-            $folder_set->mock(
-                _build_folder => sub {
-                    Plync::FolderSyncable->new($_[1],
-                        sync_key_generator => sub { ++$_[0]->{sync_key} });
-                }
-            );
-
-            return $folder_set;
-        }
-    );
-
     return $device;
 }
 

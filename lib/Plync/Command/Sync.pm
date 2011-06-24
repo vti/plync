@@ -28,7 +28,7 @@ sub _dispatch {
                     return $done->();
                 }
 
-                if ($folder->sync_key eq $collections->[0]->{sync_key}) {
+                if ($folder->checksum eq $collections->[0]->{sync_key}) {
                     if (my $commands = $collections->[0]->{commands}) {
                         return $self->_dispatch_commands($commands, $folder,
                             $done);
@@ -63,13 +63,11 @@ sub _dispatch_initial {
                 return $done->();
             }
 
-            $folder->synced;
-
             $self->res->add_collection(
                 status        => 1,
                 collection_id => $folder->id,
                 class         => $folder->class,
-                sync_key      => $folder->sync_key
+                sync_key      => $folder->checksum
             );
 
             $done->();
@@ -95,13 +93,11 @@ sub _dispatch_resync_needed {
     my $self = shift;
     my ($folder) = @_;
 
-    $folder->reset;
-
     $self->res->add_collection(
         status        => 3,
         collection_id => $folder->id,
         class         => $folder->class,
-        sync_key      => $folder->sync_key
+        sync_key      => 0
     );
 }
 
@@ -109,14 +105,14 @@ sub _dispatch_fetch_folder_items {
     my $self = shift;
     my ($folder, $done) = @_;
 
-    $folder->synced;
-
     $self->device->fetch_folder(
         $folder->id,
         items => 1,
         sub {
             my $backend = shift;
             my ($folder) = @_;
+
+            # TODO check if folder exists
 
             my @commands;
 
@@ -132,7 +128,7 @@ sub _dispatch_fetch_folder_items {
                 status        => 1,
                 collection_id => $folder->id,
                 class         => $folder->class,
-                sync_key      => $folder->sync_key,
+                sync_key      => $folder->checksum,
                 commands      => [@commands]
             );
 
@@ -161,7 +157,7 @@ sub _dispatch_fetch_folder_item {
                 status        => 1,
                 collection_id => $folder->id,
                 class         => $folder->class,
-                sync_key      => $folder->sync_key,
+                sync_key      => $folder->checksum,
                 responses     => [
                     fetch => {
                         server_id        => $item->id,

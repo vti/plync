@@ -11,7 +11,7 @@ sub new {
     my $self = shift->SUPER::new(@_);
 
     $self->{min_interval} ||= 60;
-    $self->{max_interval} ||= 500;
+    $self->{max_interval} ||= 600;
 
     $self->{max_folders} ||= 5;
 

@@ -37,7 +37,7 @@ EOF
 is($req->error, 5);
 is($req->interval, 60);
 
-$req = Plync::Command::Ping::Request->new->parse(<<'EOF');
+$req = Plync::Command::Ping::Request->new(max_interval => 500)->parse(<<'EOF');
 <?xml version="1.0" encoding="utf-8"?>
 <Ping xmlns="Ping:">
   <HeartbeatInterval>10000000</HeartbeatInterval>
