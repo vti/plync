@@ -82,7 +82,7 @@ sub _timezone_to_blob {
     my $self = shift;
     my ($tz) = @_;
 
-    return Plync::Calendar::TimeZone->encode_timezone($tz);
+    return Plync::Event::TimeZone->encode_timezone($tz);
 }
 
 1;
