@@ -79,7 +79,7 @@ sub fetch_folder {
     $cb->($self, $folder);
 }
 
-sub fetch_folder_item {
+sub fetch_item {
     my $self = shift;
     my ($folder, $item_id, $cb) = @_;
 

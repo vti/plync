@@ -34,8 +34,7 @@ sub _dispatch {
                             $done);
                     }
                     else {
-                        return $self->_dispatch_fetch_folder_items($folder,
-                            $done);
+                        return $self->_dispatch_fetch_items($folder, $done);
                     }
                 }
                 else {
@@ -82,7 +81,7 @@ sub _dispatch_commands {
     if ($commands->[0] eq 'fetch') {
         my $item_id = $commands->[1]->{server_id};
 
-        return $self->_dispatch_fetch_folder_item($folder, $item_id, $done);
+        return $self->_dispatch_fetch_item($folder, $item_id, $done);
     }
     else {
         die 'TODO';
@@ -101,7 +100,7 @@ sub _dispatch_resync_needed {
     );
 }
 
-sub _dispatch_fetch_folder_items {
+sub _dispatch_fetch_items {
     my $self = shift;
     my ($folder, $done) = @_;
 
@@ -137,11 +136,11 @@ sub _dispatch_fetch_folder_items {
     );
 }
 
-sub _dispatch_fetch_folder_item {
+sub _dispatch_fetch_item {
     my $self = shift;
     my ($folder, $item_id, $done) = @_;
 
-    $self->device->fetch_folder_item(
+    $self->device->fetch_item(
         $folder, $item_id,
         sub {
             my $backend = shift;

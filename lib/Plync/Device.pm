@@ -58,11 +58,11 @@ sub fetch_folder {
     );
 }
 
-sub fetch_folder_item {
+sub fetch_item {
     my $self = shift;
     my ($folder, $item_id, $cb) = @_;
 
-    $self->backend->fetch_folder_item(
+    $self->backend->fetch_item(
         $folder, $item_id,
         sub {
             my $backend = shift;

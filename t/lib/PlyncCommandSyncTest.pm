@@ -48,7 +48,7 @@ sub make_fixture : Test(setup) {
 
             $cb->($self, $folder);
         },
-        fetch_folder_item => sub {
+        fetch_item => sub {
             my $self = shift;
             my ($folder_id, $item_id, $cb) = @_;
 
