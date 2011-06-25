@@ -1,5 +1,11 @@
 #!/usr/bin/env perl
 
+# 1. Download OLSON data
+#   ftp://elsie.nci.nih.gov/pub/
+# 2. Convert to ics
+#   vzic --olson-dir tzdata2011g/
+# 3. make_zoneinfo.pl zoneinfo lib/Plync/Event/TimeZone
+
 use strict;
 use warnings;
 
