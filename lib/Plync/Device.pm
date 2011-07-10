@@ -39,7 +39,7 @@ sub fetch_folders {
     my $self = shift;
     my ($cb) = @_;
 
-    $self->{folder_set} = undef;
+    delete $self->{folder_set};
 
     my $backends = $self->backends;
 
