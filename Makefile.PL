@@ -36,6 +36,7 @@ WriteMakefile(
 
     PREREQ_PM => {
         'AnyEvent'                  => '0',
+        'Async::MergePoint'         => '0',
         'Carp'                      => '0',
         'Class::Load'               => '0',
         'Plack'                     => '0',
