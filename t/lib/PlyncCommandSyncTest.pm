@@ -56,7 +56,7 @@ sub make_fixture : Test(setup) {
         }
     );
 
-    my $device = Test::Plync->build_device(backend => $backend);
+    my $device = Test::Plync->build_device(id => 1, backends => {email => $backend});
     $device->fetch_folders(sub { });
 
     $self->{device} = $device;

@@ -1,15 +1,16 @@
-package Plync::Calendar::vCalendar;
+package Plync::Backend::Calendar::vCalendar::Parser;
 
 use strict;
 use warnings;
 
+use Plync::Event;
 use Text::vFile::asData;
 
 sub parse {
-    my $class = shift;
-    my ($file) = @_;
+    my $self = shift;
+    my ($contents) = @_;
 
-    open my $fh, '<', $file or die $!;
+    open my $fh, '<', \$contents;
     my $data = Text::vFile::asData->new->parse($fh);
 
     my $events = [];
@@ -29,16 +30,17 @@ sub parse {
             my $props = $item->{properties};
 
             my $event = {
-                timezone      => $timezone,
-                all_day_event => 0,           # TODO
+                id            => $props->{UID}->[0]->{value},
+                time_zone     => $timezone,
+                all_day_event => 0,                             # TODO
                 body          => {
 
                     # 1 Plain text
                     # 2 HTML
                     # 3 RTF
                     type                => 3,
-                    estimated_data_size => 0,    # TODO
-                    truncated           => 0,    # TODO
+                    estimated_data_size => 0,                   # TODO
+                    truncated           => 0,                   # TODO
 
                     #data => '',
                     #preview => ''
@@ -46,12 +48,13 @@ sub parse {
                 busy_status     => 0,                                 # TODO
                 organizer_name  => '',                                # TODO
                 organizer_email => '',                                # TODO
-                dt_stamp        => $props->{DTSTAMP}->[0]->{value},
+                DT_stamp        => $props->{DTSTAMP}->[0]->{value},
                 end_time => vcal_datetime($props->{DTEND}->[0]->{value}),
                 location => $props->{LOCATION}->[0]->{value},
                 reminder    => 0,                                     # TODO
                 sensitivity => 0,                                     # TODO
-                subject     => $props->{DESCRIPTION}->[0]->{value},
+                subject     => $props->{SUMMARY}->[0]->{value}
+                  || $props->{DESCRIPTION}->[0]->{value},
                 start_time => vcal_datetime($props->{DTSTART}->[0]->{value}),
                 UID        => $props->{UID}->[0]->{value},
                 meeting_status         => 1,                            # TODO
@@ -75,11 +78,18 @@ sub parse {
                 online_meeting_external_link => undef,    # TODO URL
             };
 
-            push @$events, $event;
+            push @$events, $self->_build_event($event);
         }
     }
 
     return $events;
+}
+
+sub _build_event {
+    my $self = shift;
+    my ($event) = @_;
+
+    return Plync::Event->new(%$event);
 }
 
 sub vcal_status_to_response_type {

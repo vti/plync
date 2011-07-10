@@ -5,47 +5,63 @@ use warnings;
 
 use Class::Load ();
 
-sub new {
+sub set_driver {
+    my $class = shift;
+    my ($driver) = @_;
+
+    $class->_instance->{driver} = $driver;
+}
+
+sub load {
     my $class = shift;
 
-    my $self = {@_};
-    bless $self, $class;
+    return $class->_driver->load(@_);
+}
 
-    $self->{driver} ||= 'Memory';
+sub save {
+    my $class = shift;
+
+    return $class->_driver->save(@_);
+}
+
+sub delete {
+    my $class = shift;
+
+    return $class->_driver->delete(@_);
+}
+
+sub _instance {
+    my $class = shift;
+
+    no strict;
+
+    ${"$class\::_instance"} ||= $class->_new_instance(@_);
+
+    return ${"$class\::_instance"};
+}
+
+sub _new_instance {
+    my $class = shift;
+
+    my $self = bless {@_}, $class;
+
+    $self->{driver} = 'Memory';
 
     return $self;
 }
 
-sub load {
-    my $self = shift;
-
-    return $self->_driver->load(@_);
-}
-
-sub save {
-    my $self = shift;
-
-    return $self->_driver->save(@_);
-}
-
-sub delete {
-    my $self = shift;
-
-    return $self->_driver->delete(@_);
-}
-
 sub _driver {
-    my $self = shift;
+    my $class = shift;
 
-    $self->{_driver} ||= do {
-        my $driver_class = __PACKAGE__ . '::' . $self->{driver};
+    $class->_instance->{_driver} ||= do {
+        my $driver_class = __PACKAGE__ . '::' . $class->_instance->{driver};
 
         Class::Load::load_class($driver_class);
 
         $driver_class->new(@_);
     };
 
-    return $self->{_driver};
+    return $class->_instance->{_driver};
 }
 
 1;

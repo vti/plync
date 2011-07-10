@@ -15,6 +15,9 @@ is($res->to_string(2), <<'EOF');
 </Ping>
 EOF
 
+#my $xmlschema = XML::LibXML::Schema->new(location => 'schemas/ping-response.xsd');
+#$xmlschema->validate($res->dom);
+
 $res = Plync::Command::Ping::Response->new;
 $res->status(2);
 $res->add_folder(1234);

@@ -14,8 +14,7 @@ use Plync::Storage;
 use Plync::User;
 use Plync::UserManager;
 
-my $storage = Plync::Storage->new;
-$storage->save(
+Plync::Storage->save(
     'user:foo' => Plync::User->new(
         username => 'foo',
         password => 'bar'
@@ -24,7 +23,7 @@ $storage->save(
 );
 
 my $app =
-  Plync->new(user_manager => Plync::UserManager->new(storage => $storage))
+  Plync->new(user_manager => Plync::UserManager->new)
   ->psgi_app;
 
 my $cv = AnyEvent->condvar;

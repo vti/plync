@@ -1,11 +1,22 @@
 use strict;
 use warnings;
 
-use Test::More tests => 9;
+use Test::More tests => 11;
 
 use_ok('Plync::Command::Ping::Request');
 
-my $req = Plync::Command::Ping::Request->new->parse(<<'EOF');
+my $req = Plync::Command::Ping::Request->new->parse('');
+ok($req->is_empty);
+
+$req = Plync::Command::Ping::Request->new->parse(<<'EOF');
+<?xml version="1.0" encoding="utf-8"?>
+<Ping xmlns="Ping:">
+  <HeartbeatInterval>80</HeartbeatInterval>
+</Ping>
+EOF
+ok($req->is_empty);
+
+$req = Plync::Command::Ping::Request->new->parse(<<'EOF');
 <?xml version="1.0" encoding="utf-8"?>
 <Ping xmlns="Ping:">
   <HeartbeatInterval>80</HeartbeatInterval>

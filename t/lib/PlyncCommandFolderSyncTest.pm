@@ -6,7 +6,7 @@ use warnings;
 use base 'PlyncCommandTestBase';
 
 use Test::Plync;
-use Test::Plync::Backend;
+use Plync::Folder;
 use Plync::FolderSet;
 
 sub make_fixture : Test(setup) {
@@ -32,7 +32,7 @@ sub make_fixture : Test(setup) {
         }
     );
 
-    my $device = Test::Plync->build_device(backend => $backend);
+    my $device = Test::Plync->build_device(backends => {email => $backend});
 
     $self->{device} = $device;
 }

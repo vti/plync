@@ -9,7 +9,9 @@ use File::Spec;
 use MIME::Base64;
 use Plack::Builder;
 use Plack::Request;
+use Scalar::Util qw(blessed);
 
+use Plync::WBXML;
 use Plync::Backend;
 use Plync::Config;
 use Plync::DevicePool;
@@ -55,8 +57,8 @@ sub app {
                 $self->authorization_succeeded($env),
                 $self->authorization_failed($env)
             );
-        }
-    }
+          }
+      }
 }
 
 # Basic authorization methods borrowed from Plack::Middleware::Auth::Basic
@@ -67,7 +69,8 @@ sub authorize {
     my $auth = $env->{HTTP_AUTHORIZATION} or return $error_cb->($respond);
 
     if ($auth =~ /^Basic (.*)$/) {
-        my($username, $password) = split /:/, (MIME::Base64::decode($1) || ":");
+        my ($username, $password) = split /:/,
+          (MIME::Base64::decode($1) || ":");
         $password = '' unless defined $password;
 
         return $self->{user_manager}->authorize(
@@ -96,7 +99,7 @@ sub authorization_succeeded {
         my $respond = shift;
 
         $self->dispatch($env, $respond);
-    }
+      }
 }
 
 sub authorization_failed {
@@ -110,14 +113,15 @@ sub authorization_failed {
 
         $respond->(
             [   401,
-                [   'Content-Type'     => 'text/plain',
-                    'Content-Length'   => length $body,
-                    'WWW-Authenticate' => 'Basic realm="Authorization required"'
+                [   'Content-Type'   => 'text/plain',
+                    'Content-Length' => length $body,
+                    'WWW-Authenticate' =>
+                      'Basic realm="Authorization required"'
                 ],
                 [$body]
             ]
         );
-    }
+      }
 }
 
 sub psgi_app {
@@ -134,8 +138,6 @@ sub compile_psgi_app {
 
         enable "HTTPExceptions";
 
-        enable "+Plync::Middleware::WBXML";
-
         $self->app;
     };
 }
@@ -150,18 +152,41 @@ sub dispatch {
 
     Plync::HTTPException->throw(400) unless $req->method eq 'POST';
 
+    my $command = $req->param('Cmd');
+    Plync::HTTPException->throw(400) unless $command;
+
     my $device = $self->_build_device($env);
 
     my $dispatcher = $self->_build_dispatcher(device => $device);
 
-    my $res = $dispatcher->dispatch($req->content);
+    my $wbxml = Plync::WBXML->new;
+
+    my $content = $req->content;
+    if ($content ne '') {
+        $content = $wbxml->parse($content);
+    }
+
+    my $res = $dispatcher->dispatch($command, $content);
 
     if (ref $res eq 'CODE') {
         $res->(
-            sub { $respond->([200, ['Content-Type' => 'text/xml'], $_[0]]) });
+            sub {
+                $respond->(
+                    [   200,
+                        ['Content-Type' => 'application/vnd.ms-sync.wbxml'],
+                        [$wbxml->build($_[0])]
+                    ]
+                );
+            }
+        );
     }
     else {
-        $respond->([200, ['Content-Type' => 'text/xml'], $res]);
+        $respond->(
+            [   200,
+                ['Content-Type' => 'application/vnd.ms-sync.wbxml'],
+                [$wbxml->build($res)]
+            ]
+        );
     }
 }
 
@@ -198,7 +223,7 @@ sub _build_device {
             id               => "$username:$device_id",
             type             => $device_type,
             user             => $user,
-            backend          => $self->_build_backend(user => $user),
+            backends         => $self->_build_backends(user => $user),
             protocol_version => $protocol_version,
             policy_key       => $policy_key,
             user_agent       => $user_agent
@@ -208,10 +233,23 @@ sub _build_device {
     return $device;
 }
 
-sub _build_backend {
+sub _build_backends {
     my $self = shift;
 
-    return Plync::Backend->new($self->{backend}, @_);
+    my $backends = {};
+    foreach my $type (keys %{$self->{backends}}) {
+        $backends->{$type} =
+          $self->_build_backend($type, $self->{backends}->{$type});
+    }
+
+    return $backends;
+}
+
+sub _build_backend {
+    my $self = shift;
+    my ($type, $backend) = @_;
+
+    return blessed $backend ? $backend : Plync::Backend->new($backend, @_);
 }
 
 sub _build_dispatcher {

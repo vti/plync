@@ -38,7 +38,7 @@ sub dispatch {
         $req->parse($dom);
     }
     catch {
-        Plync::HTTPException->throw(500);
+        Plync::HTTPException->throw(500, message => 'Malformed XML');
     };
 
     $self->req($req);
@@ -55,6 +55,8 @@ sub dispatch {
 
     return $self->res->dom;
 }
+
+sub _dispatch {}
 
 sub _build_request {
     my $self = shift;

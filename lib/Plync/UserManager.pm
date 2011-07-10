@@ -3,13 +3,13 @@ package Plync::UserManager;
 use strict;
 use warnings;
 
+use Plync::Storage;
+
 sub new {
     my $class = shift;
 
     my $self = {@_};
     bless $self, $class;
-
-    die "Missing 'storage' param" unless $self->{storage};
 
     return $self;
 }
@@ -18,7 +18,7 @@ sub authorize {
     my $self = shift;
     my ($username, $password, $ok_cb, $error_cb) = @_;
 
-    $self->{storage}->load(
+    Plync::Storage->load(
         "user:$username" => sub {
             my $user = $_[1];
 

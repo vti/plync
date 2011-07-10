@@ -27,6 +27,17 @@ sub add {
     return $self;
 }
 
+sub add_set {
+    my $self = shift;
+    my ($set) = @_;
+
+    foreach my $item (@{$set->list}) {
+        $self->add($item);
+    }
+
+    return $self;
+}
+
 sub delete {
     my $self = shift;
     my ($id) = @_;

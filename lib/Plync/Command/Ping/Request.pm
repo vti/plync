@@ -11,11 +11,27 @@ sub new {
     my $self = shift->SUPER::new(@_);
 
     $self->{min_interval} ||= 60;
-    $self->{max_interval} ||= 600;
+    $self->{max_interval} ||= 900;
 
     $self->{max_folders} ||= 5;
 
+    $self->{is_empty} = 0;
+
     return $self;
+}
+
+sub is_empty { $_[0]->{is_empty} }
+
+sub parse {
+    my $self = shift;
+    my ($dom) = @_;
+
+    if (defined $dom && $dom eq '') {
+        $self->{is_empty} = 1;
+        return $self;
+    }
+
+    return $self->SUPER::parse(@_);
 }
 
 sub _parse {
@@ -47,11 +63,15 @@ sub _parse {
 
     $self->_validate;
 
+    if (!@{$self->{folders}}) {
+        $self->{is_empty} = 1;
+    }
+
     return $self;
 }
 
 sub interval { @_ > 1 ? $_[0]->{interval} = $_[1] : $_[0]->{interval} }
-sub folders { shift->{folders} }
+sub folders { @_ > 1 ? $_[0]->{folders} = $_[1] : $_[0]->{folders} }
 
 sub error { @_ > 1 ? $_[0]->{error} = $_[1] : $_[0]->{error} }
 sub max_folders { $_[0]->{max_folders} }

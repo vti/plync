@@ -44,4 +44,6 @@ sub new_response {
     return $response_class->new(@_);
 }
 
+sub _parse {}
+
 1;

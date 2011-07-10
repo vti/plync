@@ -3,6 +3,8 @@ package Plync::Device;
 use strict;
 use warnings;
 
+use Async::MergePoint;
+
 sub new {
     my $class = shift;
 
@@ -15,20 +17,57 @@ sub new {
 sub id   { $_[0]->{id} }
 sub user { $_[0]->{user} }
 
-sub backend    { $_[0]->{backend} }
-sub folder_set { $_[0]->{folder_set} }
+sub backends   { $_[0]->{backends} }
+sub folder_set { @_ > 1 ? $_[0]->{folder_set} = $_[1] : $_[0]->{folder_set} }
+
+sub backend {
+    my $self = shift;
+    my ($class) = @_;
+
+    die 'Class is required' unless $class;
+
+    $class = lc $class;
+
+    my $backend = $self->backends->{$class};
+
+    die "No backend registered for '$class'" unless defined $backend;
+
+    return $backend;
+}
 
 sub fetch_folders {
     my $self = shift;
     my ($cb) = @_;
 
-    $self->backend->fetch_folders(
-        sub {
-            my $backend = shift;
-            my ($folder_set) = @_;
+    $self->{folder_set} = undef;
 
-            $self->{folder_set} = $folder_set;
-            return $cb->($self, $self->{folder_set});
+    my $backends = $self->backends;
+
+    my @types = keys %$backends;
+
+    my $mp = Async::MergePoint->new(needs => [@types]);
+
+    for my $type (@types) {
+        $self->backend($type)->fetch_folders(
+            sub {
+                my $backend = shift;
+                my ($folder_set) = @_;
+
+                if (my $set = $self->{folder_set}) {
+                    $set->add_set($folder_set);
+                }
+                else {
+                    $self->{folder_set} = $folder_set;
+                }
+
+                $mp->done($type);
+            }
+        );
+    }
+
+    $mp->close(
+        on_finished => sub {
+            $cb->($self, $self->{folder_set});
         }
     );
 }
@@ -48,7 +87,7 @@ sub fetch_folder {
         return $cb->($self, $folder);
     }
 
-    $self->backend->fetch_folder(
+    $self->backend($folder->class)->fetch_folder(
         $folder->id => sub {
             my $backend = shift;
             my ($folder) = @_;
@@ -60,11 +99,13 @@ sub fetch_folder {
 
 sub fetch_item {
     my $self = shift;
-    my ($folder, $item_id, $cb) = @_;
+    my ($folder_id, $item_id, $cb) = @_;
 
-    $self->backend->fetch_item(
-        $folder, $item_id,
-        sub {
+    my $folder = $self->folder_set->get($folder_id);
+    return $cb->($self) unless $folder;
+
+    $self->backend($folder->class)->fetch_item(
+        $folder => $item_id => sub {
             my $backend = shift;
             my ($item) = @_;
 
@@ -77,7 +118,18 @@ sub watch {
     my $self = shift;
     my ($folders, $cb) = @_;
 
-    $self->backend->watch($folders, $cb);
+    my $class = $folders->[0]->{class};
+
+    # TODO handle different classes
+
+    $self->backend($class)->watch(
+        $folders => sub {
+            my $backend = shift;
+            my ($folders) = @_;
+
+            $cb->($self, $folders);
+        }
+    );
 }
 
 1;

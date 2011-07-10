@@ -34,7 +34,10 @@ sub get_code {
         $namespace = '';
     }
 
-    return ($self->_get('TAGS')->{$namespace}->{$tag}, $page);
+    my $code = $self->_get('TAGS')->{$namespace}->{$tag};
+    die "Unknown tag '$tag' from namespace '$namespace'" unless defined $code;
+
+    return ($code, $page);
 }
 
 sub get_tag {

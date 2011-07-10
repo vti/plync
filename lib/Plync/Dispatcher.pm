@@ -21,9 +21,7 @@ sub new {
 
 sub dispatch {
     my $self = shift;
-    my ($dom) = @_;
-
-    my $command = $self->_parse_command($dom);
+    my ($command, $dom) = @_;
 
     my $command_class = "Plync::Command::$command";
 

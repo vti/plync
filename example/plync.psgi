@@ -7,11 +7,10 @@ use lib 'lib';
 
 use Plync;
 use Plync::User;
+use Plync::Backend;
 use Plync::UserManager;
-use Plync::Storage;
 
-my $storage = Plync::Storage->new;
-$storage->save(
+Plync::Storage->save(
     'user:foo' => Plync::User->new(
         username => 'foo',
         password => 'bar'
@@ -19,4 +18,11 @@ $storage->save(
     sub { }
 );
 
-Plync->new(backend => '+Test::Plync::Backend', user_manager => Plync::UserManager->new(storage => $storage));
+Plync->new(
+    backends => {
+        calendar => Plync::Backend->new(
+            'Calendar', 'vCalendar', path => 'calendar.ics'
+        )
+    },
+    user_manager => Plync::UserManager->new
+);

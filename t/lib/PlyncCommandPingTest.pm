@@ -16,9 +16,12 @@ sub make_fixture : Test(setup) {
     my $self = shift;
 
     my $backend = Test::Plync->build_backend;
-    my $device = Test::Plync->build_device(backend => $backend);
+    my $device =
+      Test::Plync->build_device(id => 1, backends => {email => $backend});
 
     $self->{device} = $device;
+
+    Plync::Storage->delete('1:Ping', sub {});
 }
 
 sub test_interval_error : Test {
@@ -41,7 +44,7 @@ EOF
 <?xml version="1.0" encoding="utf-8"?>
 <Ping xmlns="Ping:">
   <Status>5</Status>
-  <HeartbeatInterval>600</HeartbeatInterval>
+  <HeartbeatInterval>900</HeartbeatInterval>
 </Ping>
 EOF
 
@@ -169,7 +172,7 @@ EOF
                 push @ids, $folder->{id};
             }
 
-            $cb->([@ids]);
+            $cb->($device, [@ids]);
         }
     );
 
@@ -177,6 +180,78 @@ EOF
     $command->mock(_build_timeout => sub { });
 
     is $self->_run_command($command, $in), $out;
+}
+
+sub test_empty : Test(2) {
+    my $self = shift;
+
+    my $in = '';
+
+    my $out = <<'EOF';
+<?xml version="1.0" encoding="utf-8"?>
+<Ping xmlns="Ping:">
+  <Status>3</Status>
+</Ping>
+EOF
+
+    is $self->_run_command('Ping', $in), $out;
+
+    $self->_run_simple_ping;
+
+    $in = '';
+
+    $out = <<'EOF';
+<?xml version="1.0" encoding="utf-8"?>
+<Ping xmlns="Ping:">
+  <Status>2</Status>
+  <Folders>
+    <Folder>1</Folder>
+  </Folders>
+</Ping>
+EOF
+
+    is $self->_run_command('Ping', $in), $out;
+}
+
+sub test_empty_with_hearbeat : Test(2) {
+    my $self = shift;
+
+    my $in = <<'EOF';
+<?xml version="1.0" encoding="utf-8"?>
+<Ping xmlns="Ping:">
+  <HeartbeatInterval>60</HeartbeatInterval>
+</Ping>
+EOF
+
+    my $out = <<'EOF';
+<?xml version="1.0" encoding="utf-8"?>
+<Ping xmlns="Ping:">
+  <Status>3</Status>
+</Ping>
+EOF
+
+    is $self->_run_command('Ping', $in), $out;
+
+    $self->_run_simple_ping;
+
+    $in = <<'EOF';
+<?xml version="1.0" encoding="utf-8"?>
+<Ping xmlns="Ping:">
+  <HeartbeatInterval>60</HeartbeatInterval>
+</Ping>
+EOF
+
+    $out = <<'EOF';
+<?xml version="1.0" encoding="utf-8"?>
+<Ping xmlns="Ping:">
+  <Status>2</Status>
+  <Folders>
+    <Folder>1</Folder>
+  </Folders>
+</Ping>
+EOF
+
+    is $self->_run_command('Ping', $in), $out;
 }
 
 sub _build_command {
@@ -191,6 +266,53 @@ sub _build_command {
     );
 
     return $command;
+}
+
+sub _run_simple_ping {
+    my $self = shift;
+
+    my $in = <<'EOF';
+<?xml version="1.0" encoding="utf-8"?>
+<Ping xmlns="Ping:">
+  <HeartbeatInterval>60</HeartbeatInterval>
+  <Folders>
+    <Folder>
+      <Id>1</Id>
+      <Class>Email</Class>
+    </Folder>
+  </Folders>
+</Ping>
+EOF
+
+    my $out = <<'EOF';
+<?xml version="1.0" encoding="utf-8"?>
+<Ping xmlns="Ping:">
+  <Status>2</Status>
+  <Folders>
+    <Folder>1</Folder>
+  </Folders>
+</Ping>
+EOF
+
+    my $device = $self->{device};
+    $device->mock(
+        watch => sub {
+            my $device = shift;
+            my ($folders, $cb) = @_;
+
+            my @ids;
+            foreach my $folder (@$folders) {
+                push @ids, $folder->{id};
+            }
+
+            $cb->($device, [@ids]);
+        }
+    );
+
+    my $command = $self->_build_command(device => $device);
+    $command->mock(_build_timeout => sub { });
+
+    $self->_run_command($command, $in), $out;
 }
 
 1;

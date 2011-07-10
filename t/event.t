@@ -32,7 +32,7 @@ $root = $doc->createElement('root');
 $doc->setDocumentElement($root);
 
 $event = Plync::Event->new(
-    timezone      => 'Europe/Berlin',
+    time_zone      => 'Europe/Berlin',
     all_day_event => 0,
     body          => {
         type                => 3,
@@ -42,7 +42,7 @@ $event = Plync::Event->new(
     busy_status                  => 0,
     organizer_name               => '',
     organizer_email              => '',
-    dt_stamp                     => '20110612T122025Z',
+    DT_stamp                     => '20110612T122025Z',
     end_time                     => '20110614T000000Z',
     location                     => 'Subway',
     reminder                     => 0,
@@ -68,7 +68,7 @@ $event->appendTo($doc, $doc->documentElement);
 is($doc->toString(2), <<'EOF');
 <?xml version="1.0"?>
 <root xmlns:airsyncbase="AirSyncBase:" xmlns:calendar="Calendar:">
-  <calendar:Timezone>PAAAAENFVAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAoAAAAFAAMAAAAAAAAAAAAAAENFU1QAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMAAAAFAAIAAAAAAAAAxP///w==</calendar:Timezone>
+  <calendar:TimeZone>PAAAAENFVAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAoAAAAFAAMAAAAAAAAAAAAAAENFU1QAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMAAAAFAAIAAAAAAAAAxP///w==</calendar:TimeZone>
   <calendar:AllDayEvent>0</calendar:AllDayEvent>
   <airsyncbase:Body>
     <airsyncbase:Type>3</airsyncbase:Type>
@@ -78,7 +78,7 @@ is($doc->toString(2), <<'EOF');
   <calendar:BusyStatus>0</calendar:BusyStatus>
   <calendar:OrganizerName/>
   <calendar:OrganizerEmail/>
-  <calendar:DtStamp>20110612T122025Z</calendar:DtStamp>
+  <calendar:DTStamp>20110612T122025Z</calendar:DTStamp>
   <calendar:EndTime>20110614T000000Z</calendar:EndTime>
   <calendar:Location>Subway</calendar:Location>
   <calendar:Reminder>0</calendar:Reminder>

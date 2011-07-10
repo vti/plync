@@ -7,6 +7,8 @@ use base 'Plync::Command::Base';
 
 use AnyEvent;
 
+use Plync::Storage;
+
 sub _dispatch {
     my $self = shift;
 
@@ -17,37 +19,87 @@ sub _dispatch {
     sub {
         my $done = shift;
 
-        my $interval = $self->req->interval;
-        my $folders  = $self->req->folders;
+        # Cached Ping
+        if ($self->req->is_empty) {
+            return Plync::Storage->load(
+                $self->_build_id => sub {
+                    my $storage = shift;
+                    my ($ping) = @_;
 
-        # TODO check if folders exist
+                    if (!defined $ping) {
+                        $self->res->status(3);
+                        return $done->();
+                    }
 
-        my $res = $self->res;
+                    # Restore Ping
+                    $self->req->interval($ping->{interval});
+                    $self->req->folders($ping->{folders});
 
-        $self->{timer} = $self->_build_timeout(
-            $self->req->interval => sub {
-                delete $self->{watcher};
-
-                $done->();
-            }
-        );
-
-        $self->{watcher} = $self->device->watch(
-            $folders => sub {
-                my ($folders) = @_;
-
-                delete $self->{timer};
-
-                $res->status(2);
-
-                foreach my $id (@$folders) {
-                    $res->add_folder($id);
+                    return $self->_dispatch_watcher($done);
                 }
+            );
+        }
 
-                $done->();
+        return $self->_dispatch_watcher($done);
+      }
+}
+
+sub _build_id {
+    my $self = shift;
+
+    return $self->device->id . ':Ping';
+}
+
+sub _dispatch_watcher {
+    my $self = shift;
+    my ($done) = @_;
+
+    Plync::Storage->save(
+        $self->_build_id => {
+            interval => $self->req->interval,
+            folders  => $self->req->folders
+          } => sub {
+            $self->_setup_timer($done);
+
+            $self->_setup_watcher($done);
+        }
+    );
+}
+
+sub _setup_timer {
+    my $self = shift;
+    my ($done) = @_;
+
+    $self->{timer} = $self->_build_timeout(
+        $self->req->interval => sub {
+            delete $self->{watcher};
+            $done->();
+        }
+    );
+}
+
+sub _setup_watcher {
+    my $self = shift;
+    my ($done) = @_;
+
+    # TODO check if folders exist
+
+    $self->{watcher} = $self->device->watch(
+        $self->req->folders => sub {
+            my $device = shift;
+            my ($folders) = @_;
+
+            delete $self->{timer};
+
+            $self->res->status(2);
+
+            foreach my $id (@$folders) {
+                $self->res->add_folder($id);
             }
-        );
-    }
+
+            $done->();
+        }
+    );
 }
 
 sub _dispatch_error {

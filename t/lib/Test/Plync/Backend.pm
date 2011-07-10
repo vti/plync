@@ -144,7 +144,7 @@ sub start {
     my $folders = $self->{folders};
 
     if ($folders->[0]->{id} eq 'root_calendar') {
-        $self->{on_event}->([$folders->[0]->{id}]);
+        $self->{on_event}->($self, [$folders->[0]->{id}]);
     }
 }
 

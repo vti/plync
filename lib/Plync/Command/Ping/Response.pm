@@ -26,7 +26,7 @@ sub build {
     my $root = $dom->createElementNS($ns, 'Ping');
     $dom->setDocumentElement($root);
 
-    my $status = $dom->createElement('Status');
+    my $status = $dom->createElementNS($ns, 'Status');
     $status->appendText($self->{status});
     $root->appendChild($status);
 

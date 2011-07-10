@@ -1,26 +1,13 @@
 package Plync::Command::Test;
-
-use strict;
-use warnings;
-
 use base 'Plync::Command::Base';
 
-sub dispatch {
-    my ($xml) = @_;
+package Plync::Command::Test::Request;
+use base 'Plync::Command::BaseRequest';
 
-    return <<'EOF';
-<?xml version="1.0" encoding="utf-8"?>
-<Test xmlns="Test:">
-Hello!
-</Test>
-EOF
-}
+package Plync::Command::Test::Response;
+use base 'Plync::Command::BaseResponse';
 
 package Plync::Command::Sub;
-
-use strict;
-use warnings;
-
 use base 'Plync::Command::Base';
 
 sub dispatch {
@@ -42,18 +29,15 @@ use Test::More tests => 9;
 
 use_ok('Plync::Dispatcher');
 
-eval { Plync::Dispatcher->new->dispatch };
+eval { Plync::Dispatcher->new->dispatch('Test') };
 isa_ok($@, 'Plync::HTTPException');
 is($@->message, 'Malformed XML');
 
-eval { Plync::Dispatcher->new->dispatch('asdasd') };
+eval { Plync::Dispatcher->new->dispatch('Test', 'asdasd') };
 isa_ok($@, 'Plync::HTTPException');
 is($@->message, 'Malformed XML');
 
-eval {
-    Plync::Dispatcher->new->dispatch(
-        '<?xml version="1.0" encoding="utf-8"?><Foo xmlns="Foo:"></Foo>');
-};
+eval { Plync::Dispatcher->new->dispatch('Foo', ''); };
 isa_ok($@, 'Plync::HTTPException');
 is($@->message, 'Not supported');
 
@@ -63,14 +47,9 @@ my $req = <<'EOF';
 </Test>
 EOF
 
-my $res = <<'EOF';
-<?xml version="1.0" encoding="utf-8"?>
-<Test xmlns="Test:">
-Hello!
-</Test>
-EOF
+my $res = '';
 
-is_deeply(Plync::Dispatcher->new->dispatch($req), $res);
+is_deeply(Plync::Dispatcher->new->dispatch('Test', $req), undef);
 
 $req = <<'EOF';
 <?xml version="1.0" encoding="utf-8"?>
@@ -85,7 +64,7 @@ Hello!
 </Sub>
 EOF
 
-my $cb = Plync::Dispatcher->new->dispatch($req);
+my $cb = Plync::Dispatcher->new->dispatch('Sub', $req);
 $cb->(
     sub {
         is($_[0], $res);

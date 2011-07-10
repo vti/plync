@@ -8,12 +8,11 @@ use_ok('Plync::UserManager');
 use Plync::User;
 use Plync::Storage;
 
-my $storage = Plync::Storage->new;
-$storage->save("user:foo",
+Plync::Storage->save("user:foo",
     Plync::User->new(username => 'foo', password => 'bar'),
     sub { });
 
-my $user_manager = Plync::UserManager->new(storage => $storage);
+my $user_manager = Plync::UserManager->new;
 
 my $failed = 0;
 $user_manager->authorize('hello', 'there', sub { }, sub { $failed = 1 });

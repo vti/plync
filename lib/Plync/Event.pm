@@ -28,8 +28,9 @@ sub appendTo {
     $doc->documentElement->setNamespace('AirSyncBase:', 'airsyncbase', 0);
     $doc->documentElement->setNamespace('Calendar:',    'calendar',    0);
 
-    if (defined $self->{timezone}) {
-        $root->addNewChild('Calendar:', 'Timezone')->appendText($self->_timezone_to_blob($self->{timezone}));
+    if (defined $self->{time_zone}) {
+        $root->addNewChild('Calendar:', 'TimeZone')
+          ->appendText($self->_timezone_to_blob($self->{time_zone}));
     }
 
     $self->_append($root, $_) for qw(all_day_event);
@@ -46,7 +47,7 @@ sub appendTo {
 
     $self->_append($root, $_)
       for qw( busy_status organizer_name organizer_email
-      dt_stamp end_time location reminder sensitivity
+      DT_stamp end_time location reminder sensitivity
       subject start_time UID meeting_status );
 
     # TODO attendies
