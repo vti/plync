@@ -45,6 +45,14 @@ WriteMakefile(
         'Test::More'                => '0',
         'Try::Tiny'                 => '0',
         'XML::LibXML'               => '0',
+        'I18N::Charset'             => '0',
+        'HTML::Entities::Numbered'  => '0',
+        'YAML::Tiny'                => '0',
+        'Async::MergePoint'         => '0',
+        'AnyEvent::AIO'             => '0',
+        'Linux::Inotify2'           => '0',
+        'String::CamelCase'         => '0',
+        'Text::vFile::asData        => '0',
     },
     test => {TESTS => 't/*.t t/*/*.t t/*/*/*.t t/*/*/*/*.t'}
 );
